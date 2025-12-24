@@ -29,17 +29,30 @@ const CONFIG = {
   },
   answers: {
     // House 1
-    c1_fullName: "javier morales",
+    c1_fullName: "Francisco Javier Morales Duarte",
+    c1_dob: "December 27, 2001",
     // House 2
-    c2_initials: "JM",
+    c2_age_left_al_to_nc: "15",
+    c2_first_job: "sears",
+    c2_first_job_role: "tools specialist",
     // House 3
-    c3_word: "engagement",
+    c3_first_car: "2010 dodge challenger",
+    c3_after_sears_job1: "grocery store",
+    c3_after_sears_job2: "busser",
+    c3_after_sears_context: "french restaurant downtown",
     // House 4
-    c4_name: "rosita pacheco",
+    c4_career_1: "photographer",
+    c4_career_2: "journalist",
+    c4_career_3: "engineer",
+    c4_money_to_wilmington: "2000",
     // House 5
-    c5_state: "AL",
+    c5_money_after_first_year: "0",
+    c5_first_tech_job_where: "liberty healthcare",
+    c5_major: "computer science",
+    c5_concentration: "software engineering",
+    c5_minor: "cybersecurity",
     // House 6
-    c6_state: "NC",
+    c6_name: "rosita pacheco",
     // House 7
     c7_passcode: "JM-RP",
   },
@@ -59,6 +72,107 @@ function normalize(s) {
     .trim()
     .replace(/\s+/g, " ")
     .toLowerCase();
+}
+
+function escapeHtml(s) {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderMcq(root, questions) {
+  root.innerHTML = questions
+    .map((q, idx) => {
+      const name = `mcq_${q.id}`;
+      const legend = escapeHtml(q.prompt ?? `Question ${idx + 1}`);
+      const options = (q.options ?? [])
+        .map((opt) => {
+          const value = escapeHtml(opt.value);
+          const label = escapeHtml(opt.label ?? opt.value);
+          return `<label class="choice"><input type="radio" name="${name}" value="${value}" /> <span>${label}</span></label>`;
+        })
+        .join("");
+      return `
+        <div class="field">
+          <div class="field-label">${legend}</div>
+          <fieldset class="choices" aria-label="${legend}">
+            ${options}
+          </fieldset>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function validateMcq(questions) {
+  for (const q of questions) {
+    const name = `mcq_${q.id}`;
+    const checked = document.querySelector(`input[name="${CSS.escape(name)}"]:checked`);
+    const val = checked?.value ?? "";
+    if (val !== q.correct) return false;
+  }
+  return true;
+}
+
+function normalizeDob(s) {
+  // Accepts "December 27, 2001" OR "Dec 27 2001" OR "12/27/2001" (and similar).
+  const raw = normalize(s).replace(/,/g, "");
+  if (!raw) return "";
+
+  // Numeric formats: mm/dd/yyyy or mm-dd-yyyy
+  const m1 = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (m1) {
+    const mm = String(m1[1]).padStart(2, "0");
+    const dd = String(m1[2]).padStart(2, "0");
+    const yyyy = m1[3];
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  // Month name formats: month day year
+  const months = {
+    january: 1,
+    february: 2,
+    march: 3,
+    april: 4,
+    may: 5,
+    june: 6,
+    july: 7,
+    august: 8,
+    september: 9,
+    october: 10,
+    november: 11,
+    december: 12,
+    jan: 1,
+    feb: 2,
+    mar: 3,
+    apr: 4,
+    jun: 6,
+    jul: 7,
+    aug: 8,
+    sep: 9,
+    sept: 9,
+    oct: 10,
+    nov: 11,
+    dec: 12,
+  };
+
+  const parts = raw.split(" ");
+  if (parts.length >= 3) {
+    const month = months[parts[0]];
+    const day = parts[1]?.replace(/\D/g, "");
+    const year = parts[2]?.replace(/\D/g, "");
+    if (month && day && year && year.length === 4) {
+      const mm = String(month).padStart(2, "0");
+      const dd = String(day).padStart(2, "0");
+      return `${year}-${mm}-${dd}`;
+    }
+  }
+
+  // Fallback: normalized string
+  return raw;
 }
 
 function clamp(n, min, max) {
@@ -194,142 +308,252 @@ function modalSetResult(kind, text) {
 function getChallenge(step, state) {
   const houseName = CONFIG.houses.find((h) => h.step === step)?.name ?? `House ${step}`;
   if (step === 1) {
+    const questions = [
+      {
+        id: "1_name",
+        prompt: "Full name",
+        options: [
+          { value: "A", label: "Francisco Javier Morales Duarte" },
+          { value: "B", label: "Javier Morales" },
+          { value: "C", label: "Francisco Morales Duarte" },
+          { value: "D", label: "Francisco Javier Duarte" },
+        ],
+        correct: "A",
+      },
+      {
+        id: "1_dob",
+        prompt: "Date of birth",
+        options: [
+          { value: "A", label: "December 27, 2001" },
+          { value: "B", label: "December 27, 2000" },
+          { value: "C", label: "November 27, 2001" },
+          { value: "D", label: "December 17, 2001" },
+        ],
+        correct: "A",
+      },
+    ];
     return {
       title: `${houseName} — Identity Check`,
-      desc: "Enter the full name of the person this game is about.",
-      hint: "First name: Javier. Last name: Morales.",
-      render: (root) => {
-        root.innerHTML = `
-          <label class="field">
-            <span class="field-label">Answer</span>
-            <input id="c1" class="input" type="text" autocomplete="off" spellcheck="false" placeholder="Full name" />
-          </label>
-        `;
-      },
-      validate: () => normalize($("#c1").value) === normalize(CONFIG.answers.c1_fullName),
+      desc: "Pick the correct answers.",
+      hint: "No typing needed—just choose.",
+      render: (root) => renderMcq(root, questions),
+      validate: () => validateMcq(questions),
     };
   }
 
   if (step === 2) {
-    return {
-      title: `${houseName} — Initials Gate`,
-      desc: "Pick the initials that match the name you entered.",
-      hint: "Use the first letters of Javier and Morales.",
-      render: (root) => {
-        root.innerHTML = `
-          <fieldset class="choices" aria-label="Initials choices">
-            <label class="choice"><input type="radio" name="c2" value="JM" /> <span>JM</span></label>
-            <label class="choice"><input type="radio" name="c2" value="MJ" /> <span>MJ</span></label>
-            <label class="choice"><input type="radio" name="c2" value="JP" /> <span>JP</span></label>
-            <label class="choice"><input type="radio" name="c2" value="RM" /> <span>RM</span></label>
-          </fieldset>
-        `;
+    const questions = [
+      {
+        id: "2_age",
+        prompt: "What age did I leave Alabama to go to North Carolina?",
+        options: [
+          { value: "A", label: "14" },
+          { value: "B", label: "15" },
+          { value: "C", label: "16" },
+          { value: "D", label: "17" },
+        ],
+        correct: "B",
       },
-      validate: () => (document.querySelector('input[name="c2"]:checked')?.value ?? "") === CONFIG.answers.c2_initials,
+      {
+        id: "2_job",
+        prompt: "What was my first job?",
+        options: [
+          { value: "A", label: "Sears — Tools Specialist" },
+          { value: "B", label: "Walmart — Cashier" },
+          { value: "C", label: "Home Depot — Sales Associate" },
+          { value: "D", label: "Target — Stock Team" },
+        ],
+        correct: "A",
+      },
+    ];
+    return {
+      title: `${houseName} — The Move + First Job`,
+      desc: "Pick the correct answers.",
+      hint: "Two questions, two picks.",
+      render: (root) => renderMcq(root, questions),
+      validate: () => validateMcq(questions),
     };
   }
 
   if (step === 3) {
-    return {
-      title: `${houseName} — The Promise Word`,
-      desc: "Riddle: “I’m not a ring, but I often come before one. I’m a vow you can’t see, but you can feel.”",
-      hint: "The stage before marriage. (Starts with “e”)",
-      render: (root) => {
-        root.innerHTML = `
-          <label class="field">
-            <span class="field-label">One word</span>
-            <input id="c3" class="input" type="text" autocomplete="off" spellcheck="false" placeholder="Your answer" />
-          </label>
-        `;
+    const questions = [
+      {
+        id: "3_car",
+        prompt: "What was my first car?",
+        options: [
+          { value: "A", label: "2010 Dodge Challenger" },
+          { value: "B", label: "2010 Dodge Charger" },
+          { value: "C", label: "2012 Ford Mustang" },
+          { value: "D", label: "2008 Honda Civic" },
+        ],
+        correct: "A",
       },
-      validate: () => normalize($("#c3").value) === normalize(CONFIG.answers.c3_word),
+      {
+        id: "3_after",
+        prompt: "What did I do after Sears?",
+        options: [
+          {
+            value: "A",
+            label: "Worked two jobs: grocery store + busser at a French restaurant downtown",
+          },
+          { value: "B", label: "Worked one job: bartender downtown" },
+          { value: "C", label: "Joined the military" },
+          { value: "D", label: "Started a photography business" },
+        ],
+        correct: "A",
+      },
+    ];
+    return {
+      title: `${houseName} — First Car + Next Jobs`,
+      desc: "Pick the correct answers.",
+      hint: "Two questions, two picks.",
+      render: (root) => renderMcq(root, questions),
+      validate: () => validateMcq(questions),
     };
   }
 
   if (step === 4) {
-    return {
-      title: `${houseName} — Caesar Cipher`,
-      desc: "Decode this (Caesar shift -3). It’s a name: URVLWD SDFKHFR",
-      hint: "Shift each letter back 3. Example: D → A, C → Z.",
-      render: (root) => {
-        root.innerHTML = `
-          <label class="field">
-            <span class="field-label">Decoded name</span>
-            <input id="c4" class="input" type="text" autocomplete="off" spellcheck="false" placeholder="First Last" />
-          </label>
-        `;
+    const questions = [
+      {
+        id: "4_career",
+        prompt: "What career did I want in high school (in order)?",
+        options: [
+          { value: "A", label: "Photographer → Journalist → Engineer" },
+          { value: "B", label: "Engineer → Journalist → Photographer" },
+          { value: "C", label: "Journalist → Photographer → Engineer" },
+          { value: "D", label: "Photographer → Engineer → Journalist" },
+        ],
+        correct: "A",
       },
-      validate: () => normalize($("#c4").value) === normalize(CONFIG.answers.c4_name),
+      {
+        id: "4_money",
+        prompt: "How much money did I have when I left for Wilmington for university?",
+        options: [
+          { value: "A", label: "$0" },
+          { value: "B", label: "$500" },
+          { value: "C", label: "$2000" },
+          { value: "D", label: "$5000" },
+        ],
+        correct: "C",
+      },
+    ];
+    return {
+      title: `${houseName} — Career + Wilmington`,
+      desc: "Pick the correct answers.",
+      hint: "Two questions, two picks.",
+      render: (root) => renderMcq(root, questions),
+      validate: () => validateMcq(questions),
     };
   }
 
   if (step === 5) {
+    const questions = [
+      {
+        id: "5_money",
+        prompt: "After my first year in college, how much money did I have?",
+        options: [
+          { value: "A", label: "$0" },
+          { value: "B", label: "$200" },
+          { value: "C", label: "$2000" },
+          { value: "D", label: "$5000" },
+        ],
+        correct: "A",
+      },
+      {
+        id: "5_job",
+        prompt: "Where did I get my first tech job?",
+        options: [
+          { value: "A", label: "Liberty Healthcare" },
+          { value: "B", label: "Liberty Mutual" },
+          { value: "C", label: "Duke Health" },
+          { value: "D", label: "UNC Health" },
+        ],
+        correct: "A",
+      },
+      {
+        id: "5_degree",
+        prompt: "What kind of degree was it?",
+        options: [
+          { value: "A", label: "Bachelor’s (4 years)" },
+          { value: "B", label: "Associate’s (2 years)" },
+          { value: "C", label: "Master’s (2 years)" },
+          { value: "D", label: "Certificate program" },
+        ],
+        correct: "A",
+      },
+      {
+        id: "5_study",
+        prompt: "What was I studying?",
+        options: [
+          {
+            value: "A",
+            label: "Computer Science (Software Engineering concentration) + Cybersecurity minor",
+          },
+          { value: "B", label: "Cybersecurity (Software Engineering concentration) + Computer Science minor" },
+          { value: "C", label: "Computer Engineering + Data Science minor" },
+          { value: "D", label: "Information Systems + Business minor" },
+        ],
+        correct: "A",
+      },
+    ];
     return {
-      title: `${houseName} — State Code`,
-      desc: "Enter the 2-letter state code for Alabama.",
-      hint: "Alabama → AL",
+      title: `${houseName} — First Tech Job + Studies`,
+      desc: "Pick the correct answers.",
+      hint: "Four questions in this house.",
       submitLabel: "Unlock",
-      render: (root) => {
-        root.innerHTML = `
-          <label class="field">
-            <span class="field-label">Answer</span>
-            <input id="c5" class="input" type="text" autocomplete="off" spellcheck="false" placeholder="AL" />
-          </label>
-        `;
-      },
-      validate: () => {
-        const v = $("#c5").value.trim().toUpperCase().replace(/\s+/g, "");
-        const expected = CONFIG.answers.c5_state.toUpperCase();
-        return v === expected;
-      },
+      render: (root) => renderMcq(root, questions),
+      validate: () => validateMcq(questions),
     };
   }
 
   if (step === 6) {
+    const questions = [
+      {
+        id: "6_cipher",
+        prompt: "Decode (Caesar shift -3): URVLWD SDFKHFR",
+        options: [
+          { value: "A", label: "Rosita Pacheco" },
+          { value: "B", label: "Rosita Pacheca" },
+          { value: "C", label: "Rosalia Pacheco" },
+          { value: "D", label: "Rosa Pacheco" },
+        ],
+        correct: "A",
+      },
+    ];
     return {
-      title: `${houseName} — State Code`,
-      desc: "Enter the 2-letter state code for North Carolina.",
-      hint: "North Carolina → NC",
+      title: `${houseName} — Caesar Cipher`,
+      desc: "Pick the correct answer.",
+      hint: "No typing needed.",
       submitLabel: "Unlock",
-      render: (root) => {
-        root.innerHTML = `
-          <label class="field">
-            <span class="field-label">Answer</span>
-            <input id="c6" class="input" type="text" autocomplete="off" spellcheck="false" placeholder="NC" />
-          </label>
-        `;
-      },
-      validate: () => {
-        const v = $("#c6").value.trim().toUpperCase().replace(/\s+/g, "");
-        const expected = CONFIG.answers.c6_state.toUpperCase();
-        return v === expected;
-      },
+      render: (root) => renderMcq(root, questions),
+      validate: () => validateMcq(questions),
     };
   }
 
   if (step === 7) {
     const finaleUnlocked = state.unlockedStep >= CONFIG.stepsTotal + 1;
+    const questions = [
+      {
+        id: "7_pass",
+        prompt: "Final passcode",
+        options: [
+          { value: "A", label: "JM-RP" },
+          { value: "B", label: "FJMD-RP" },
+          { value: "C", label: "JM-PR" },
+          { value: "D", label: "RP-JM" },
+        ],
+        correct: "A",
+      },
+    ];
     return {
       title: `${houseName} — Final Passcode`,
       desc: finaleUnlocked
         ? "You already cleared this house. The finale is unlocked."
-        : "Build the passcode from the initials of the two main names, in this format: JM-RP",
-      hint: finaleUnlocked ? "" : "House 1 gives JM. House 4 gives initials RP.",
+        : "Pick the correct passcode.",
+      hint: finaleUnlocked ? "" : "House 1 gives JM. House 6 gives initials RP.",
       submitLabel: finaleUnlocked ? "OK" : "Unlock Finale",
-      render: (root) => {
-        root.innerHTML = `
-          <label class="field">
-            <span class="field-label">Passcode</span>
-            <input id="c7" class="input" type="text" autocomplete="off" spellcheck="false" placeholder="JM-RP" />
-          </label>
-        `;
-      },
-      validate: () => {
-        if (finaleUnlocked) return true;
-        const v = $("#c7").value.trim().toUpperCase().replace(/\s+/g, "");
-        const expected = CONFIG.answers.c7_passcode.toUpperCase().replace(/\s+/g, "");
-        return v === expected;
-      },
+      render: (root) => (finaleUnlocked ? (root.textContent = "") : renderMcq(root, questions)),
+      validate: () => (finaleUnlocked ? true : validateMcq(questions)),
     };
   }
 
@@ -1536,6 +1760,8 @@ function main() {
     if (supportsPointer) {
       baseEl.addEventListener("pointerdown", (e) => {
         if (modal.isOpen) return;
+        // Prevent page scroll while interacting with joystick on mobile browsers
+        e.preventDefault();
         joyActive = true;
         activePointerId = e.pointerId;
         baseEl.setPointerCapture?.(e.pointerId);
@@ -1545,8 +1771,9 @@ function main() {
       window.addEventListener("pointermove", (e) => {
         if (!joyActive) return;
         if (activePointerId !== null && e.pointerId !== activePointerId) return;
+        if (e.pointerType === "touch") e.preventDefault();
         applyJoyFromClient(e.clientX, e.clientY);
-      }, { passive: true });
+      }, { passive: false });
 
       window.addEventListener("pointerup", (e) => {
         if (activePointerId !== null && e.pointerId !== activePointerId) return;
@@ -1600,6 +1827,16 @@ function main() {
   // Wire both joysticks (overlay + under-game panel). Only one is visible at a time.
   wireJoystick(joyBase, joyKnob);
   wireJoystick(joyBaseInline, joyKnobInline);
+
+  // Extra safety: while joystick is active, prevent page scrolling on touchmove (especially iOS Safari).
+  window.addEventListener(
+    "touchmove",
+    (e) => {
+      if (!joyActive) return;
+      e.preventDefault();
+    },
+    { passive: false },
+  );
 
   if (actionBtn) {
     actionBtn.addEventListener("click", () => {
