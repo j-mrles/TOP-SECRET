@@ -656,7 +656,10 @@ function getChallenge(step, state) {
     return {
       title: `${houseName} — ${houseTitle(1)}`,
       desc: t("pickCorrectAnswers"),
-      hint: txt("No typing needed—just choose.", "No necesitas escribir—solo elige."),
+      hint: txt(
+        "Hint: The correct full name includes a second last name (Duarte). For the DOB, the year ends with “01”.",
+        "Pista: El nombre correcto incluye un segundo apellido (Duarte). Para la fecha, el año termina en “01”."
+      ),
       questions,
       submitLabel: t("wizardUnlock"),
       render: (root) => renderMcq(root, [questions[0]]),
@@ -695,7 +698,10 @@ function getChallenge(step, state) {
     return {
       title: `${houseName} — ${houseTitle(2)}`,
       desc: t("pickCorrectAnswers"),
-      hint: txt("Two questions, two picks.", "Dos preguntas, dos respuestas."),
+      hint: txt(
+        "Hint: The age is mid‑teens. The job is the one that mentions the tools department.",
+        "Pista: La edad es a mediados de la adolescencia. El trabajo es el que menciona el departamento de herramientas."
+      ),
       questions,
       submitLabel: t("wizardUnlock"),
       render: (root) => renderMcq(root, [questions[0]]),
@@ -737,7 +743,10 @@ function getChallenge(step, state) {
     return {
       title: `${houseName} — ${houseTitle(3)}`,
       desc: t("pickCorrectAnswers"),
-      hint: txt("Two questions, two picks.", "Dos preguntas, dos respuestas."),
+      hint: txt(
+        "Hint: The first car is the muscle car (Challenger). After Sears it was TWO jobs, and one was at a French restaurant downtown.",
+        "Pista: El primer carro es el muscle car (Challenger). Después de Sears fueron DOS trabajos, y uno fue en un restaurante francés en el centro."
+      ),
       questions,
       submitLabel: t("wizardUnlock"),
       render: (root) => renderMcq(root, [questions[0]]),
@@ -779,7 +788,10 @@ function getChallenge(step, state) {
     return {
       title: `${houseName} — ${houseTitle(4)}`,
       desc: t("pickCorrectAnswers"),
-      hint: txt("Two questions, two picks.", "Dos preguntas, dos respuestas."),
+      hint: txt(
+        "Hint: The career path starts creative (photographer), then writing (journalist), then problem-solving (engineer). The money was in the thousands, not hundreds.",
+        "Pista: El camino de carrera empieza creativo (fotógrafo), luego escritura (periodista) y después resolver problemas (ingeniero). El dinero fue en miles, no en cientos."
+      ),
       questions,
       submitLabel: t("wizardUnlock"),
       render: (root) => renderMcq(root, [questions[0]]),
@@ -852,7 +864,10 @@ function getChallenge(step, state) {
     return {
       title: `${houseName} — ${houseTitle(5)}`,
       desc: t("pickCorrectAnswers"),
-      hint: txt("Four questions in this house.", "Cuatro preguntas en esta casa."),
+      hint: txt(
+        "Hint: Money after year one was $0. The company name is Liberty Healthcare. It was a 4‑year Bachelor’s. The study option mentions Software Engineering + a Cybersecurity minor.",
+        "Pista: El dinero después del primer año fue $0. La empresa es Liberty Healthcare. Fue una licenciatura de 4 años. La opción correcta menciona Ingeniería de Software + menor en Ciberseguridad."
+      ),
       submitLabel: t("wizardUnlock"),
       questions,
       render: (root) => renderMcq(root, [questions[0]]),
@@ -899,7 +914,10 @@ function getChallenge(step, state) {
     return {
       title: `${houseName} — ${houseTitle(6)}`,
       desc: t("pickCorrectAnswers"),
-      hint: txt("Three questions in this house.", "Tres preguntas en esta casa."),
+      hint: txt(
+        "Hint: Work is “Software Engineer” at MegaCorp Logistics. The car is a Tesla Model 3. The big purchase is not a vehicle — it’s a home.",
+        "Pista: El trabajo es “Software Engineer” en MegaCorp Logistics. El carro es un Tesla Model 3. La compra grande no es un vehículo — es una casa."
+      ),
       submitLabel: t("wizardUnlock"),
       questions,
       render: (root) => renderMcq(root, [questions[0]]),
@@ -951,7 +969,12 @@ function getChallenge(step, state) {
     return {
       title: `${houseName} — ${houseTitle(7)}`,
       desc: finaleUnlocked ? t("alreadyClearedFinaleUnlocked") : t("pickCorrectAnswers"),
-      hint: finaleUnlocked ? "" : t("threeQuestionsInThisHouse"),
+      hint: finaleUnlocked
+        ? ""
+        : txt(
+            "Hint: Partner is Rosita Pacheco Vargas (full name). The time together is 4 years (Jan 4). The riddle’s answer is something you can hear bouncing back.",
+            "Pista: La pareja es Rosita Pacheco Vargas (nombre completo). El tiempo juntos es 4 años (4 de enero). La respuesta de la adivinanza es algo que escuchas rebotar."
+          ),
       submitLabel: finaleUnlocked ? t("finaleOk") : t("wizardUnlockFinale"),
       questions: finaleUnlocked ? null : questions,
       render: (root) => (finaleUnlocked ? (root.textContent = "") : renderMcq(root, [questions[0]])),
