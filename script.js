@@ -1002,7 +1002,7 @@ function onModalSubmit(state) {
             <div class="firework" style="--x: 50%; --y: 84%; --d: 900ms"></div>
           </div>
 
-          <img class="finale-img" src="./assets/finale.png" alt="${escapeHtml(isEs ? "Foto del final" : "Finale photo")}" />
+          <img class="finale-img" src="./assets/finale.png" alt="${escapeHtml(currentLang === "es" ? "Foto del final" : "Finale photo")}" />
           <div class="finale-caption">${escapeHtml(t("finaleCaption"))}</div>
         </div>
       `;
