@@ -52,7 +52,10 @@ const CONFIG = {
     c5_concentration: "software engineering",
     c5_minor: "cybersecurity",
     // House 6
-    c6_name: "rosita pacheco",
+    c6_role: "software engineer",
+    c6_company: "megacorp logistics",
+    c6_car: "tesla model 3",
+    c6_purchase: "house",
     // House 7
     c7_passcode: "JM-RP",
   },
@@ -107,12 +110,23 @@ function renderMcq(root, questions) {
     .join("");
 }
 
-function validateMcq(questions) {
+function validateMcq(questions, answersOverride) {
+  function isCorrect(val, correct) {
+    const v = normalize(val);
+    if (Array.isArray(correct)) return correct.some((c) => normalize(c) === v);
+    return normalize(correct) === v;
+  }
+
   for (const q of questions) {
-    const name = `mcq_${q.id}`;
-    const checked = document.querySelector(`input[name="${CSS.escape(name)}"]:checked`);
-    const val = checked?.value ?? "";
-    if (val !== q.correct) return false;
+    let val = "";
+    if (answersOverride) {
+      val = answersOverride[q.id] ?? "";
+    } else {
+      const name = `mcq_${q.id}`;
+      const checked = document.querySelector(`input[name="${CSS.escape(name)}"]:checked`);
+      val = checked?.value ?? "";
+    }
+    if (!isCorrect(val, q.correct)) return false;
   }
   return true;
 }
@@ -198,9 +212,10 @@ function readState() {
     return {
       unlockedStep: clampInt(parsed.unlockedStep ?? 1, 1, CONFIG.stepsTotal + 1),
       solved: typeof parsed.solved === "object" && parsed.solved ? parsed.solved : {},
+      fishCaught: clampInt(parsed.fishCaught ?? 0, 0, 999999),
     };
   } catch {
-    return { unlockedStep: 1, solved: {} };
+    return { unlockedStep: 1, solved: {}, fishCaught: 0 };
   }
 }
 
@@ -235,13 +250,85 @@ const modal = {
   desc: null,
   form: null,
   submit: null,
+  backBtn: null,
   hintBtn: null,
   hint: null,
   result: null,
   closeBtn: null,
   isOpen: false,
   currentStep: null,
+  wizard: null,
+  finaleMode: null,
 };
+
+function wizardInit(cfg) {
+  modal.wizard = {
+    questions: cfg.questions,
+    idx: 0,
+    answers: {},
+    desc: cfg.desc ?? "",
+    hint: cfg.hint ?? "",
+    finalLabel: cfg.submitLabel ?? "Submit",
+  };
+}
+
+function wizardStoreCurrentAnswer() {
+  const wz = modal.wizard;
+  if (!wz) return;
+  const q = wz.questions[wz.idx];
+  if (!q) return;
+  const name = `mcq_${q.id}`;
+  const checked = modal.form.querySelector(`input[name="${CSS.escape(name)}"]:checked`);
+  const val = checked?.value ?? "";
+  if (val) wz.answers[q.id] = val;
+}
+
+function wizardHasCurrentAnswer() {
+  const wz = modal.wizard;
+  if (!wz) return false;
+  const q = wz.questions[wz.idx];
+  if (!q) return false;
+  return Boolean(wz.answers[q.id]);
+}
+
+function renderWizardQuestion() {
+  const wz = modal.wizard;
+  if (!wz) return;
+  const q = wz.questions[wz.idx];
+  if (!q) return;
+
+  // Render ONE question
+  renderMcq(modal.form, [q]);
+
+  // Restore selection (if previously chosen)
+  const saved = wz.answers[q.id];
+  if (saved) {
+    const name = `mcq_${q.id}`;
+    const input = modal.form.querySelector(
+      `input[name="${CSS.escape(name)}"][value="${CSS.escape(saved)}"]`,
+    );
+    if (input) input.checked = true;
+  }
+
+  // Store selection on change
+  modal.form.onchange = () => wizardStoreCurrentAnswer();
+
+  // Update UI
+  if (modal.backBtn) modal.backBtn.hidden = wz.idx === 0;
+  if (modal.hintBtn) modal.hintBtn.hidden = !wz.hint;
+  if (modal.hint) {
+    modal.hint.textContent = wz.hint ?? "";
+    modal.hint.hidden = true;
+  }
+  modal.result.textContent = "";
+
+  const progress = `Question ${wz.idx + 1}/${wz.questions.length}`;
+  modal.desc.textContent = wz.desc ? `${wz.desc} (${progress})` : progress;
+
+  if (modal.submit) {
+    modal.submit.textContent = wz.idx === wz.questions.length - 1 ? (wz.finalLabel ?? "Submit") : "Next";
+  }
+}
 
 function modalOpen(step, state) {
   modal.isOpen = true;
@@ -250,35 +337,47 @@ function modalOpen(step, state) {
   modal.hint.hidden = true;
   modal.hint.textContent = "";
   modal.form.innerHTML = "";
+  modal.wizard = null;
+  modal.finaleMode = null;
 
   // Finale (House 8): show the secret and nothing else
   if (step === CONFIG.stepsTotal + 1) {
     const unlocked = state.unlockedStep >= CONFIG.stepsTotal + 1;
     modal.title.textContent = CONFIG.houses.find((h) => h.step === 8)?.name ?? "Finale";
     modal.desc.textContent = unlocked
-      ? "You made it. Here’s the secret:"
+      ? "Do you want to know the finale? Type YES."
       : "Finale is locked. Clear all houses first.";
-    modal.submit.textContent = "OK";
+    modal.submit.textContent = unlocked ? "Reveal" : "OK";
     modal.hintBtn.hidden = true;
     modal.hint.hidden = true;
+    if (modal.backBtn) modal.backBtn.hidden = true;
+    modal.finaleMode = unlocked ? "confirm" : "locked";
     modal.form.innerHTML = unlocked
-      ? `<div class="hint" style="background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.3);">
-           <strong>${CONFIG.secretPrefix}</strong> ${decodeSecret()}
-         </div>`
+      ? `
+        <label class="field">
+          <span class="field-label">Type YES to reveal</span>
+          <input id="finale_yes" class="input" type="text" autocomplete="off" spellcheck="false" placeholder="yes" />
+        </label>
+      `
       : "";
     modal.overlay.hidden = false;
-    requestAnimationFrame(() => modal.closeBtn?.focus?.());
+    requestAnimationFrame(() => (unlocked ? document.getElementById("finale_yes")?.focus?.() : modal.closeBtn?.focus?.()));
     return;
   }
 
   const cfg = getChallenge(step, state);
   modal.title.textContent = cfg.title;
-  modal.desc.textContent = cfg.desc;
-  modal.submit.textContent = cfg.submitLabel ?? "Submit";
-
-  cfg.render(modal.form);
-  modal.hint.textContent = cfg.hint;
-  modal.hintBtn.hidden = !cfg.hint;
+  if (cfg.questions && Array.isArray(cfg.questions) && cfg.questions.length) {
+    wizardInit(cfg);
+    renderWizardQuestion();
+  } else {
+    modal.desc.textContent = cfg.desc;
+    modal.submit.textContent = cfg.submitLabel ?? "Submit";
+    cfg.render(modal.form);
+    modal.hint.textContent = cfg.hint;
+    modal.hintBtn.hidden = !cfg.hint;
+    if (modal.backBtn) modal.backBtn.hidden = true;
+  }
 
   modal.overlay.hidden = false;
   requestAnimationFrame(() => {
@@ -290,6 +389,8 @@ function modalOpen(step, state) {
 function modalClose() {
   modal.isOpen = false;
   modal.currentStep = null;
+  modal.wizard = null;
+  modal.finaleMode = null;
   modal.overlay.hidden = true;
   setMessage("Walk to a house door and press Enter.");
   $("#gameCanvas").focus?.();
@@ -336,7 +437,9 @@ function getChallenge(step, state) {
       title: `${houseName} — Identity Check`,
       desc: "Pick the correct answers.",
       hint: "No typing needed—just choose.",
-      render: (root) => renderMcq(root, questions),
+      questions,
+      submitLabel: "Unlock",
+      render: (root) => renderMcq(root, [questions[0]]),
       validate: () => validateMcq(questions),
     };
   }
@@ -370,7 +473,9 @@ function getChallenge(step, state) {
       title: `${houseName} — The Move + First Job`,
       desc: "Pick the correct answers.",
       hint: "Two questions, two picks.",
-      render: (root) => renderMcq(root, questions),
+      questions,
+      submitLabel: "Unlock",
+      render: (root) => renderMcq(root, [questions[0]]),
       validate: () => validateMcq(questions),
     };
   }
@@ -407,7 +512,9 @@ function getChallenge(step, state) {
       title: `${houseName} — First Car + Next Jobs`,
       desc: "Pick the correct answers.",
       hint: "Two questions, two picks.",
-      render: (root) => renderMcq(root, questions),
+      questions,
+      submitLabel: "Unlock",
+      render: (root) => renderMcq(root, [questions[0]]),
       validate: () => validateMcq(questions),
     };
   }
@@ -441,7 +548,9 @@ function getChallenge(step, state) {
       title: `${houseName} — Career + Wilmington`,
       desc: "Pick the correct answers.",
       hint: "Two questions, two picks.",
-      render: (root) => renderMcq(root, questions),
+      questions,
+      submitLabel: "Unlock",
+      render: (root) => renderMcq(root, [questions[0]]),
       validate: () => validateMcq(questions),
     };
   }
@@ -501,7 +610,8 @@ function getChallenge(step, state) {
       desc: "Pick the correct answers.",
       hint: "Four questions in this house.",
       submitLabel: "Unlock",
-      render: (root) => renderMcq(root, questions),
+      questions,
+      render: (root) => renderMcq(root, [questions[0]]),
       validate: () => validateMcq(questions),
     };
   }
@@ -509,23 +619,46 @@ function getChallenge(step, state) {
   if (step === 6) {
     const questions = [
       {
-        id: "6_cipher",
-        prompt: "Decode (Caesar shift -3): URVLWD SDFKHFR",
+        id: "6_work",
+        prompt: "Where do I work now?",
         options: [
-          { value: "A", label: "Rosita Pacheco" },
-          { value: "B", label: "Rosita Pacheca" },
-          { value: "C", label: "Rosalia Pacheco" },
-          { value: "D", label: "Rosa Pacheco" },
+          { value: "A", label: "Software Engineer at MegaCorp Logistics" },
+          { value: "B", label: "Project Manager at MegaCorp Logistics" },
+          { value: "C", label: "Software Engineer at Liberty Healthcare" },
+          { value: "D", label: "Cybersecurity Analyst at Duke Health" },
+        ],
+        correct: "A",
+      },
+      {
+        id: "6_car",
+        prompt: "What kind of car do I have now?",
+        options: [
+          { value: "A", label: "Tesla Model 3" },
+          { value: "B", label: "Tesla Model Y" },
+          { value: "C", label: "Toyota Camry" },
+          { value: "D", label: "Honda Accord" },
+        ],
+        correct: "A",
+      },
+      {
+        id: "6_purchase",
+        prompt: "What is my recent big purchase?",
+        options: [
+          { value: "A", label: "A house" },
+          { value: "B", label: "A motorcycle" },
+          { value: "C", label: "A boat" },
+          { value: "D", label: "A watch" },
         ],
         correct: "A",
       },
     ];
     return {
-      title: `${houseName} — Caesar Cipher`,
-      desc: "Pick the correct answer.",
-      hint: "No typing needed.",
+      title: `${houseName} — Right Now`,
+      desc: "Pick the correct answers.",
+      hint: "Three questions in this house.",
       submitLabel: "Unlock",
-      render: (root) => renderMcq(root, questions),
+      questions,
+      render: (root) => renderMcq(root, [questions[0]]),
       validate: () => validateMcq(questions),
     };
   }
@@ -534,25 +667,49 @@ function getChallenge(step, state) {
     const finaleUnlocked = state.unlockedStep >= CONFIG.stepsTotal + 1;
     const questions = [
       {
-        id: "7_pass",
-        prompt: "Final passcode",
+        id: "7_partner",
+        prompt: "What is the name of my partner?",
         options: [
-          { value: "A", label: "JM-RP" },
-          { value: "B", label: "FJMD-RP" },
-          { value: "C", label: "JM-PR" },
-          { value: "D", label: "RP-JM" },
+          { value: "A", label: "Rosita Pacheco Vargas" },
+          { value: "B", label: "Rosita Vargas Pacheco" },
+          { value: "C", label: "Rosa Pacheco Vargas" },
+          { value: "D", label: "Rosita Pacheca Vargas" },
+        ],
+        correct: "A",
+      },
+      {
+        id: "7_years",
+        prompt: "How long have we been together?",
+        options: [
+          { value: "A", label: "2 years (Jan 4)" },
+          { value: "B", label: "3 years (Jan 4)" },
+          { value: "C", label: "4 years (Jan 4)" },
+          { value: "D", label: "5 years (Jan 4)" },
+        ],
+        correct: "C",
+      },
+      {
+        id: "7_riddle",
+        prompt:
+          "Riddle: I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?",
+        options: [
+          { value: "A", label: "An echo" },
+          { value: "B", label: "A shadow" },
+          { value: "C", label: "A candle" },
+          { value: "D", label: "A cloud" },
         ],
         correct: "A",
       },
     ];
     return {
-      title: `${houseName} — Final Passcode`,
+      title: `${houseName} — The Finale Key`,
       desc: finaleUnlocked
         ? "You already cleared this house. The finale is unlocked."
-        : "Pick the correct passcode.",
-      hint: finaleUnlocked ? "" : "House 1 gives JM. House 6 gives initials RP.",
+        : "Answer these final questions to unlock the finale.",
+      hint: finaleUnlocked ? "" : "Three questions in this house.",
       submitLabel: finaleUnlocked ? "OK" : "Unlock Finale",
-      render: (root) => (finaleUnlocked ? (root.textContent = "") : renderMcq(root, questions)),
+      questions: finaleUnlocked ? null : questions,
+      render: (root) => (finaleUnlocked ? (root.textContent = "") : renderMcq(root, [questions[0]])),
       validate: () => (finaleUnlocked ? true : validateMcq(questions)),
     };
   }
@@ -574,11 +731,68 @@ function onModalSubmit(state) {
     return;
   }
 
-  const cfg = getChallenge(step, state);
-  const ok = cfg.validate();
-  if (!ok) {
-    modalSetResult("bad", "Not quite — try again (or use a hint).");
-    return;
+  // Finale confirm flow (type YES)
+  if (step === CONFIG.stepsTotal + 1) {
+    if (modal.finaleMode === "locked") {
+      modalClose();
+      return;
+    }
+    if (modal.finaleMode === "confirm") {
+      const v = normalize(document.getElementById("finale_yes")?.value ?? "");
+      if (v !== "yes") {
+        modalSetResult("bad", "Type YES to reveal the finale.");
+        return;
+      }
+      modal.finaleMode = "revealed";
+      modal.desc.textContent = "Finale:";
+      modal.submit.textContent = "OK";
+      modal.form.innerHTML = `
+        <div class="ring-stage" aria-label="Engagement ring animation">
+          <div class="ring" aria-hidden="true">
+            <div class="sparkle"></div>
+            <div class="band"></div>
+            <div class="diamond"></div>
+          </div>
+          <div class="ring-caption">Rosita and Javier are engaged.</div>
+        </div>
+      `;
+      modalSetResult("ok", "");
+      return;
+    }
+    if (modal.finaleMode === "revealed") {
+      modalClose();
+      return;
+    }
+  }
+
+  // Wizard (one question at a time)
+  if (modal.wizard) {
+    wizardStoreCurrentAnswer();
+    if (!wizardHasCurrentAnswer()) {
+      modalSetResult("bad", "Pick an option to continue.");
+      return;
+    }
+
+    const wz = modal.wizard;
+    if (wz.idx < wz.questions.length - 1) {
+      wz.idx += 1;
+      renderWizardQuestion();
+      return;
+    }
+
+    // Last question: validate all answers
+    const ok = validateMcq(wz.questions, wz.answers);
+    if (!ok) {
+      modalSetResult("bad", "Not quite — try again (or use a hint).");
+      return;
+    }
+  } else {
+    const cfg = getChallenge(step, state);
+    const ok = cfg.validate();
+    if (!ok) {
+      modalSetResult("bad", "Not quite — try again (or use a hint).");
+      return;
+    }
   }
 
   // Clearing house 5 unlocks finale (unlockedStep becomes 6)
@@ -586,6 +800,8 @@ function onModalSubmit(state) {
   state.unlockedStep = Math.max(state.unlockedStep, step + 1);
   writeState(state);
   setProgressUI(state);
+
+  modal.wizard = null;
 
   if (step === 7) {
     modalSetResult("ok", "Finale unlocked! Go to the Finale house.");
@@ -679,6 +895,21 @@ function buildTown() {
     { x: 34 * tile, y: 30 * tile, w: 6 * tile, h: 4 * tile },
   ];
 
+  // Allgood Neighborhood (tiny mobile homes around the big lake)
+  const trailerHomes = [
+    // north of lake
+    { x: 35 * tile, y: 12 * tile, w: 3 * tile, h: 2 * tile },
+    { x: 39 * tile, y: 12 * tile, w: 3 * tile, h: 2 * tile },
+    { x: 43 * tile, y: 12 * tile, w: 3 * tile, h: 2 * tile },
+    // west of lake
+    { x: 33 * tile, y: 16 * tile, w: 3 * tile, h: 2 * tile },
+    { x: 33 * tile, y: 19 * tile, w: 3 * tile, h: 2 * tile },
+    // south of lake
+    { x: 35 * tile, y: 22 * tile, w: 3 * tile, h: 2 * tile },
+    { x: 39 * tile, y: 22 * tile, w: 3 * tile, h: 2 * tile },
+    { x: 43 * tile, y: 22 * tile, w: 3 * tile, h: 2 * tile },
+  ];
+
   const hedges = [
     { x: 0, y: 0, w: bounds.w, h: tile },
     { x: 0, y: bounds.h - tile, w: bounds.w, h: tile },
@@ -753,21 +984,38 @@ function buildTown() {
   // Trees are solid (block movement)
   trees.forEach((t) => solids.push({ x: t.x, y: t.y, w: tile, h: tile }));
 
+  // Trailer homes are solid (block movement)
+  trailerHomes.forEach((t) => solids.push({ x: t.x, y: t.y, w: t.w, h: t.h }));
+
   const signs = [
     { x: 10 * tile, y: 40 * tile, text: "START → Allgood / Oneonta" },
     { x: 12 * tile, y: 31 * tile, text: "↑ Cleveland (Route Gate)" },
     { x: 22 * tile, y: 26 * tile, text: "↑ ROUTE NORTH" },
     { x: 10 * tile, y: 12 * tile, text: "→ North Carolina" },
     { x: 23 * tile, y: 6 * tile, text: "↑ FINALE" },
+    { x: 36 * tile, y: 14 * tile, text: "ALLGOOD NEIGHBORHOOD" },
   ];
 
   const regions = [
     { name: "Alabama (Hometown)", rect: { x: 0, y: 24 * tile, w: bounds.w, h: 18 * tile } },
     { name: "The Route", rect: { x: 0, y: 12 * tile, w: bounds.w, h: 12 * tile } },
     { name: "North Carolina", rect: { x: 0, y: 0, w: bounds.w, h: 12 * tile } },
+    { name: "Allgood Neighborhood", rect: { x: 32 * tile, y: 11 * tile, w: 16 * tile, h: 15 * tile } },
   ];
 
-  return { bounds, houses, solids, paths, waters, regions, signs, hedges, cliffs, tallGrass, flowers, fences, trees };
+  // Rideable vehicles (unlock after completing the corresponding house)
+  const vehicles = [
+    // Next to House 3: orange bike
+    { id: "bike_orange", type: "bike", label: "Orange Bike", color: "orange", unlockStep: 3, x: 39 * tile, y: 37 * tile, speedMult: 1.45 },
+    // House 5: maroon dodge challenger
+    { id: "car_challenger", type: "car", label: "Maroon Dodge Challenger", color: "maroon", unlockStep: 5, x: 13 * tile, y: 12 * tile, speedMult: 1.6 },
+    // Next to House 6: silver mustang
+    { id: "car_mustang", type: "car", label: "Silver Mustang", color: "silver", unlockStep: 6, x: 26 * tile, y: 12 * tile, speedMult: 1.6 },
+    // Next to House 7: white tesla
+    { id: "car_tesla", type: "car", label: "White Tesla", color: "white", unlockStep: 7, x: 39 * tile, y: 12 * tile, speedMult: 1.7 },
+  ];
+
+  return { bounds, houses, solids, paths, waters, regions, signs, hedges, cliffs, tallGrass, flowers, fences, trees, vehicles, trailerHomes };
 }
 
 function isTypingTarget(el) {
@@ -783,6 +1031,7 @@ function main() {
   modal.desc = $("#modalDesc");
   modal.form = $("#modalForm");
   modal.submit = $("#modalSubmitBtn");
+  modal.backBtn = $("#modalBackBtn");
   modal.hintBtn = $("#modalHintBtn");
   modal.hint = $("#modalHint");
   modal.result = $("#modalResult");
@@ -806,21 +1055,86 @@ function main() {
   let joyVec = { x: 0, y: 0 };
   let joyActive = false;
 
+  // Sprite assets (optional). If missing, we fall back to procedural pixel cars.
+  const sprites = {
+    challenger: { img: null, ready: false },
+  };
+  try {
+    const img = new Image();
+    img.onload = () => {
+      sprites.challenger.ready = true;
+    };
+    img.onerror = () => {
+      sprites.challenger.ready = false;
+    };
+    // Put the user's challenger sprite here:
+    // /assets/dodge-challenger.png
+    img.src = "./assets/dodge-challenger.png";
+    sprites.challenger.img = img;
+  } catch {
+    // ignore
+  }
+
   const player = {
     x: WORLD.spawn.x * WORLD.tile,
     y: WORLD.spawn.y * WORLD.tile,
     w: 14,
     h: 14,
-    speed: 120, // px/s
+    baseSpeed: 120, // px/s
     dir: "down",
     isMoving: false,
     animTime: 0,
+    mountedVehicleId: null,
   };
 
   const keys = new Set();
   let last = performance.now();
   let nearbyHouse = null;
   let nearbySign = null;
+  let nearbyVehicle = null;
+  let nearbyWater = null;
+
+  const bubble = {
+    text: "",
+    until: 0,
+  };
+
+  function showBubble(text, ms = 900) {
+    bubble.text = String(text ?? "");
+    bubble.until = performance.now() + ms;
+  }
+
+  const fishing = {
+    active: false,
+    timers: [],
+  };
+
+  function clearFishingTimers() {
+    fishing.timers.forEach((id) => clearTimeout(id));
+    fishing.timers = [];
+  }
+
+  function cancelFishing(message = "Fishing cancelled.") {
+    if (!fishing.active) return;
+    fishing.active = false;
+    clearFishingTimers();
+    showBubble(message, 900);
+  }
+
+  function isVehicleUnlocked(v) {
+    // A vehicle is rideable after you complete its house (house N complete => state.unlockedStep >= N+1)
+    return state.unlockedStep >= (v.unlockStep + 1);
+  }
+
+  function getMountedVehicle() {
+    if (!player.mountedVehicleId) return null;
+    return (town.vehicles ?? []).find((v) => v.id === player.mountedVehicleId) ?? null;
+  }
+
+  function playerSpeed() {
+    const v = getMountedVehicle();
+    return player.baseSpeed * (v?.speedMult ?? 1);
+  }
 
   // Touch UI (mobile joystick + action button)
   const touchControls = document.getElementById("touchControls");
@@ -1054,7 +1368,7 @@ function main() {
   }
 
   function tryMove(dx, dy, dt) {
-    const step = player.speed * dt;
+    const step = playerSpeed() * dt;
     const nx = player.x + dx * step;
     const ny = player.y + dy * step;
 
@@ -1095,6 +1409,40 @@ function main() {
     }
     // within ~28px
     if (best && bestD2 <= 28 * 28) return best;
+    return null;
+  }
+
+  function computeNearbyVehicle() {
+    let best = null;
+    let bestD = Infinity;
+    for (const v of town.vehicles ?? []) {
+      // If mounted, treat it as not nearby (it moves with player visually)
+      if (player.mountedVehicleId === v.id) continue;
+      const d = dist(player.x, player.y, v.x, v.y);
+      if (d < bestD) {
+        bestD = d;
+        best = v;
+      }
+    }
+    if (best && bestD <= 34) return best;
+    return null;
+  }
+
+  function computeNearbyWater() {
+    // Check distance from player to the nearest point on any water rect.
+    // Collision prevents entering water; this detects when you are close enough to fish from shore.
+    let best = null;
+    let bestD = Infinity;
+    for (const w of town.waters ?? []) {
+      const cx = clamp(player.x, w.x, w.x + w.w);
+      const cy = clamp(player.y, w.y, w.y + w.h);
+      const d = dist(player.x, player.y, cx, cy);
+      if (d < bestD) {
+        bestD = d;
+        best = w;
+      }
+    }
+    if (best && bestD <= 26) return best;
     return null;
   }
 
@@ -1226,7 +1574,30 @@ function main() {
   }
 
   function interact() {
+    if (fishing.active) return;
+    // If mounted, Enter/A should prioritize entering houses; otherwise dismount.
+    if (player.mountedVehicleId) {
+      if (!nearbyHouse) {
+        player.mountedVehicleId = null;
+        setMessage("Dismounted.");
+        return;
+      }
+      // if near a house, continue to house interaction
+    } else if (nearbyVehicle) {
+      if (!isVehicleUnlocked(nearbyVehicle)) {
+        setMessage(`Locked: clear House ${nearbyVehicle.unlockStep} to ride the ${nearbyVehicle.label}.`);
+        return;
+      }
+      player.mountedVehicleId = nearbyVehicle.id;
+      setMessage(`Riding: ${nearbyVehicle.label}. (Press Enter/A to dismount when not at a house.)`);
+      return;
+    }
+
     if (!nearbyHouse) {
+      if (nearbyWater) {
+        startFishing();
+        return;
+      }
       setMessage("Nothing to interact with here.");
       return;
     }
@@ -1243,6 +1614,38 @@ function main() {
       setMessage(`Entering ${nearbyHouse.name}...`);
     }
     modalOpen(nearbyHouse.step, state);
+  }
+
+  function startFishing() {
+    if (fishing.active) return;
+    fishing.active = true;
+    clearFishingTimers();
+
+    const fishTypes = ["Bluegill", "Bass", "Catfish", "Trout", "Carp"];
+    const caught = fishTypes[Math.floor(Math.random() * fishTypes.length)];
+
+    showBubble("Fishing... 1", 700);
+    fishing.timers.push(
+      setTimeout(() => {
+        if (!fishing.active) return;
+        showBubble("Fishing... 2", 700);
+      }, 550),
+    );
+    fishing.timers.push(
+      setTimeout(() => {
+        if (!fishing.active) return;
+        showBubble("Fishing... 3", 700);
+      }, 1100),
+    );
+    fishing.timers.push(
+      setTimeout(() => {
+        if (!fishing.active) return;
+        fishing.active = false;
+        state.fishCaught = (state.fishCaught ?? 0) + 1;
+        writeState(state);
+        showBubble(`Boom! Caught a ${caught}.`, 1600);
+      }, 1650),
+    );
   }
 
   function draw() {
@@ -1286,6 +1689,11 @@ function main() {
       ctx.strokeStyle = "rgba(59, 130, 246, 0.32)";
       ctx.lineWidth = 2;
       ctx.strokeRect(w.x + 1, w.y + 1, w.w - 2, w.h - 2);
+    }
+
+    // Allgood Neighborhood mobile homes (trailers)
+    for (const t of town.trailerHomes ?? []) {
+      drawTrailerHome(ctx, t);
     }
 
     // Tall grass (Pokemon vibe; not solid)
@@ -1369,6 +1777,12 @@ function main() {
       ctx.fillRect(xx + 11, yy + 13, 2, 7);
     }
 
+    // Parked vehicles (rideable after completing the matching house)
+    for (const v of town.vehicles ?? []) {
+      if (player.mountedVehicleId === v.id) continue; // mounted vehicle moves with player
+      drawVehicle(ctx, v, isVehicleUnlocked(v));
+    }
+
     // Signposts (no floating text boxes)
     for (const s of town.signs ?? []) {
       const sx = s.x;
@@ -1425,7 +1839,17 @@ function main() {
     ctx.fillRect(town.bounds.w - tile, 0, tile, town.bounds.h);
 
     // Player sprite (simple FireRed-ish walk cycle)
+    const mounted = getMountedVehicle();
+    if (mounted) {
+      // Draw the vehicle under the player
+      drawVehicleAt(ctx, mounted, player.x, player.y + 6, true);
+    }
     drawPlayerSprite(ctx, player);
+
+    // Bubble dialogue above player (for fishing + other short popups)
+    if (bubble.text && performance.now() < bubble.until) {
+      drawBubble(ctx, player.x, player.y - 24, bubble.text);
+    }
 
     // Interaction prompt marker
     if (nearbyHouse) {
@@ -1434,6 +1858,14 @@ function main() {
       ctx.fillStyle = st === "locked" ? "rgba(255,255,255,0.35)" : "rgba(245,158,11,0.9)";
       ctx.beginPath();
       ctx.arc(vd.x + vd.w / 2, vd.y - 6, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Vehicle prompt marker
+    if (!player.mountedVehicleId && nearbyVehicle) {
+      ctx.fillStyle = isVehicleUnlocked(nearbyVehicle) ? "rgba(34,197,94,0.9)" : "rgba(255,255,255,0.35)";
+      ctx.beginPath();
+      ctx.arc(nearbyVehicle.x, nearbyVehicle.y - 18, 5, 0, Math.PI * 2);
       ctx.fill();
     }
 
@@ -1451,6 +1883,352 @@ function main() {
     }
 
     ctx.restore();
+  }
+
+  function drawTrailerHome(ctx2, t) {
+    // Tiny mobile home / trailer (solid). Visual matches a 3x2 tile rect.
+    const x = t.x;
+    const y = t.y;
+    const w = t.w;
+    const h = t.h;
+
+    // roof
+    ctx2.fillStyle = "rgba(148, 163, 184, 0.28)";
+    ctx2.fillRect(x, y, w, 8);
+    // body
+    ctx2.fillStyle = "rgba(214, 199, 168, 0.28)";
+    ctx2.fillRect(x, y + 8, w, h - 8);
+    // door + window
+    ctx2.fillStyle = "rgba(120, 82, 45, 0.40)";
+    ctx2.fillRect(x + 6, y + h - 14, 8, 12);
+    ctx2.fillStyle = "rgba(59, 130, 246, 0.20)";
+    ctx2.fillRect(x + w - 18, y + h - 16, 12, 10);
+
+    // outline
+    ctx2.strokeStyle = "rgba(0,0,0,0.20)";
+    ctx2.lineWidth = 2;
+    ctx2.strokeRect(x + 1, y + 1, w - 2, h - 2);
+  }
+
+  function drawBubble(ctx2, x, y, text) {
+    ctx2.save();
+    ctx2.font = "800 12px Inter, system-ui";
+    const maxW = 260;
+    const padX = 10;
+    const padY = 8;
+    const lines = wrapText(ctx2, text, maxW - padX * 2);
+    const lineH = 16;
+    const w = Math.min(
+      maxW,
+      Math.max(...lines.map((l) => ctx2.measureText(l).width)) + padX * 2,
+    );
+    const h = lines.length * lineH + padY * 2;
+    const bx = Math.round(x - w / 2);
+    const by = Math.round(y - h);
+
+    // bubble background
+    ctx2.fillStyle = "rgba(0, 0, 0, 0.55)";
+    drawRoundedRect(ctx2, bx, by, w, h, 10);
+    ctx2.fill();
+    ctx2.strokeStyle = "rgba(255, 255, 255, 0.14)";
+    ctx2.lineWidth = 2;
+    ctx2.stroke();
+
+    // tail
+    ctx2.fillStyle = "rgba(0, 0, 0, 0.55)";
+    ctx2.beginPath();
+    ctx2.moveTo(x - 6, by + h);
+    ctx2.lineTo(x + 6, by + h);
+    ctx2.lineTo(x, by + h + 10);
+    ctx2.closePath();
+    ctx2.fill();
+
+    // text
+    ctx2.fillStyle = "rgba(255, 255, 255, 0.92)";
+    lines.forEach((l, i) => {
+      ctx2.fillText(l, bx + padX, by + padY + lineH * (i + 1) - 4);
+    });
+    ctx2.restore();
+  }
+
+  function wrapText(ctx2, text, maxWidth) {
+    const words = String(text ?? "").split(/\s+/g);
+    const lines = [];
+    let line = "";
+    for (const w of words) {
+      const test = line ? `${line} ${w}` : w;
+      if (ctx2.measureText(test).width <= maxWidth) {
+        line = test;
+      } else {
+        if (line) lines.push(line);
+        line = w;
+      }
+    }
+    if (line) lines.push(line);
+    return lines.length ? lines : [""];
+  }
+
+  function vehicleColor(v) {
+    if (v.color === "orange") return { body: "rgba(245, 158, 11, 0.85)", trim: "rgba(120, 82, 45, 0.9)" };
+    if (v.color === "maroon") return { body: "rgba(128, 30, 62, 0.9)", trim: "rgba(255,255,255,0.12)" };
+    if (v.color === "silver") return { body: "rgba(148, 163, 184, 0.85)", trim: "rgba(30, 41, 59, 0.35)" };
+    if (v.color === "white") return { body: "rgba(248, 250, 252, 0.85)", trim: "rgba(30, 41, 59, 0.25)" };
+    return { body: "rgba(255,255,255,0.2)", trim: "rgba(0,0,0,0.2)" };
+  }
+
+  function drawRoundedRect(ctx2, x, y, w, h, r) {
+    const rr = Math.min(r, w / 2, h / 2);
+    ctx2.beginPath();
+    ctx2.moveTo(x + rr, y);
+    ctx2.arcTo(x + w, y, x + w, y + h, rr);
+    ctx2.arcTo(x + w, y + h, x, y + h, rr);
+    ctx2.arcTo(x, y + h, x, y, rr);
+    ctx2.arcTo(x, y, x + w, y, rr);
+    ctx2.closePath();
+  }
+
+  function drawCarChallenger(ctx2, x, y, c) {
+    // Wide muscle car look: boxier body + hood scoop + side stripe
+    // Shadow
+    ctx2.fillStyle = "rgba(0,0,0,0.24)";
+    ctx2.beginPath();
+    ctx2.ellipse(x, y + 10, 20, 6, 0, 0, Math.PI * 2);
+    ctx2.fill();
+
+    // Body
+    ctx2.fillStyle = c.body;
+    drawRoundedRect(ctx2, x - 20, y - 12, 40, 24, 6);
+    ctx2.fill();
+
+    // Hood scoop
+    ctx2.fillStyle = "rgba(0,0,0,0.18)";
+    drawRoundedRect(ctx2, x - 6, y - 10, 12, 6, 3);
+    ctx2.fill();
+
+    // Windows (smaller, muscle car)
+    ctx2.fillStyle = c.trim;
+    drawRoundedRect(ctx2, x - 14, y - 6, 28, 10, 4);
+    ctx2.fill();
+
+    // Racing stripe
+    ctx2.fillStyle = "rgba(255,255,255,0.10)";
+    ctx2.fillRect(x - 2, y - 12, 4, 24);
+
+    // Wheels
+    ctx2.fillStyle = "rgba(0,0,0,0.28)";
+    ctx2.fillRect(x - 22, y - 10, 4, 6);
+    ctx2.fillRect(x + 18, y - 10, 4, 6);
+    ctx2.fillRect(x - 22, y + 4, 4, 6);
+    ctx2.fillRect(x + 18, y + 4, 4, 6);
+
+    // Headlights (top)
+    ctx2.fillStyle = "rgba(255,255,255,0.18)";
+    ctx2.fillRect(x - 14, y - 12, 8, 2);
+    ctx2.fillRect(x + 6, y - 12, 8, 2);
+
+    // Outline
+    ctx2.strokeStyle = "rgba(0,0,0,0.28)";
+    ctx2.lineWidth = 2;
+    drawRoundedRect(ctx2, x - 20 + 1, y - 12 + 1, 40 - 2, 24 - 2, 6);
+    ctx2.stroke();
+  }
+
+  function drawCarMustang(ctx2, x, y, c) {
+    // Sporty fastback: tapered rear + stronger roofline
+    ctx2.fillStyle = "rgba(0,0,0,0.24)";
+    ctx2.beginPath();
+    ctx2.ellipse(x, y + 10, 18, 6, 0, 0, Math.PI * 2);
+    ctx2.fill();
+
+    // Body (slightly narrower)
+    ctx2.fillStyle = c.body;
+    drawRoundedRect(ctx2, x - 18, y - 12, 36, 24, 8);
+    ctx2.fill();
+
+    // Fastback roof (diagonal highlight)
+    ctx2.fillStyle = c.trim;
+    drawRoundedRect(ctx2, x - 12, y - 7, 24, 11, 5);
+    ctx2.fill();
+    ctx2.fillStyle = "rgba(255,255,255,0.08)";
+    ctx2.beginPath();
+    ctx2.moveTo(x - 10, y - 6);
+    ctx2.lineTo(x + 10, y - 6);
+    ctx2.lineTo(x + 6, y + 2);
+    ctx2.lineTo(x - 10, y + 2);
+    ctx2.closePath();
+    ctx2.fill();
+
+    // Hood bulge
+    ctx2.fillStyle = "rgba(0,0,0,0.16)";
+    drawRoundedRect(ctx2, x - 5, y - 10, 10, 8, 3);
+    ctx2.fill();
+
+    // Wheels
+    ctx2.fillStyle = "rgba(0,0,0,0.28)";
+    ctx2.fillRect(x - 20, y - 10, 4, 6);
+    ctx2.fillRect(x + 16, y - 10, 4, 6);
+    ctx2.fillRect(x - 20, y + 4, 4, 6);
+    ctx2.fillRect(x + 16, y + 4, 4, 6);
+
+    // Outline
+    ctx2.strokeStyle = "rgba(0,0,0,0.28)";
+    ctx2.lineWidth = 2;
+    drawRoundedRect(ctx2, x - 18 + 1, y - 12 + 1, 36 - 2, 24 - 2, 8);
+    ctx2.stroke();
+  }
+
+  function drawCarTeslaModel3(ctx2, x, y, c) {
+    // Smooth sedan: rounder body + glass roof
+    ctx2.fillStyle = "rgba(0,0,0,0.24)";
+    ctx2.beginPath();
+    ctx2.ellipse(x, y + 10, 18, 6, 0, 0, Math.PI * 2);
+    ctx2.fill();
+
+    // Body
+    ctx2.fillStyle = c.body;
+    drawRoundedRect(ctx2, x - 18, y - 12, 36, 24, 10);
+    ctx2.fill();
+
+    // Glass roof (dark)
+    ctx2.fillStyle = "rgba(30, 41, 59, 0.30)";
+    drawRoundedRect(ctx2, x - 13, y - 7, 26, 12, 7);
+    ctx2.fill();
+    // Roof highlight
+    ctx2.fillStyle = "rgba(255,255,255,0.08)";
+    drawRoundedRect(ctx2, x - 10, y - 5, 20, 4, 4);
+    ctx2.fill();
+
+    // Minimal wheels
+    ctx2.fillStyle = "rgba(0,0,0,0.26)";
+    ctx2.fillRect(x - 20, y - 9, 4, 5);
+    ctx2.fillRect(x + 16, y - 9, 4, 5);
+    ctx2.fillRect(x - 20, y + 4, 4, 5);
+    ctx2.fillRect(x + 16, y + 4, 4, 5);
+
+    // Outline
+    ctx2.strokeStyle = "rgba(0,0,0,0.26)";
+    ctx2.lineWidth = 2;
+    drawRoundedRect(ctx2, x - 18 + 1, y - 12 + 1, 36 - 2, 24 - 2, 10);
+    ctx2.stroke();
+  }
+
+  function drawBike(ctx2, x, y, c) {
+    // Slightly more bike-y: wheels + frame triangle
+    ctx2.fillStyle = "rgba(0,0,0,0.24)";
+    ctx2.beginPath();
+    ctx2.ellipse(x, y + 8, 10, 4, 0, 0, Math.PI * 2);
+    ctx2.fill();
+
+    // Wheels
+    ctx2.fillStyle = "rgba(0,0,0,0.30)";
+    drawRoundedRect(ctx2, x - 14, y - 2, 8, 8, 2);
+    ctx2.fill();
+    drawRoundedRect(ctx2, x + 6, y - 2, 8, 8, 2);
+    ctx2.fill();
+
+    // Frame
+    ctx2.strokeStyle = c.body;
+    ctx2.lineWidth = 3;
+    ctx2.beginPath();
+    ctx2.moveTo(x - 10, y + 2);
+    ctx2.lineTo(x - 2, y - 4);
+    ctx2.lineTo(x + 10, y + 2);
+    ctx2.lineTo(x - 2, y + 2);
+    ctx2.closePath();
+    ctx2.stroke();
+
+    // Handle + seat
+    ctx2.strokeStyle = c.trim;
+    ctx2.lineWidth = 3;
+    ctx2.beginPath();
+    ctx2.moveTo(x + 2, y - 6);
+    ctx2.lineTo(x + 10, y - 6);
+    ctx2.stroke();
+    ctx2.fillStyle = c.trim;
+    ctx2.fillRect(x - 4, y - 8, 6, 3);
+  }
+
+  function drawVehicle(ctx2, v, unlocked) {
+    drawVehicleAt(ctx2, v, v.x, v.y, unlocked);
+  }
+
+  function drawVehicleAt(ctx2, v, x, y, unlocked) {
+    const c = vehicleColor(v);
+    const alpha = unlocked ? 1 : 0.55;
+    ctx2.save();
+    ctx2.globalAlpha = alpha;
+
+    if (v.type === "bike") {
+      drawBike(ctx2, x, y, c);
+    } else if (v.id === "car_challenger") {
+      // Prefer user-provided sprite if available
+      if (sprites.challenger.ready && sprites.challenger.img) {
+        drawChallengerSprite(ctx2, sprites.challenger.img, x, y);
+      } else {
+        drawCarChallenger(ctx2, x, y, c);
+      }
+    } else if (v.id === "car_mustang") {
+      drawCarMustang(ctx2, x, y, c);
+    } else if (v.id === "car_tesla") {
+      drawCarTeslaModel3(ctx2, x, y, c);
+    } else {
+      // fallback car
+      drawCarTeslaModel3(ctx2, x, y, c);
+    }
+
+    // Label badge
+    ctx2.font = "800 10px Inter, system-ui";
+    const label = v.type === "bike" ? "BIKE" : (v.label ?? "CAR").toUpperCase();
+    const tw = ctx2.measureText(label).width;
+    ctx2.fillStyle = "rgba(0,0,0,0.30)";
+    ctx2.fillRect(x - tw / 2 - 6, y - 26, tw + 12, 14);
+    ctx2.fillStyle = "rgba(255,255,255,0.85)";
+    ctx2.fillText(label, x - tw / 2, y - 15);
+    if (!unlocked) {
+      const lock = "LOCKED";
+      const lw = ctx2.measureText(lock).width;
+      ctx2.fillStyle = "rgba(0,0,0,0.30)";
+      ctx2.fillRect(x - lw / 2 - 6, y + 18, lw + 12, 14);
+      ctx2.fillStyle = "rgba(255,255,255,0.75)";
+      ctx2.fillText(lock, x - lw / 2, y + 29);
+    }
+
+    ctx2.restore();
+  }
+
+  function drawChallengerSprite(ctx2, img, x, y) {
+    // The provided sprite sheet has 3 views + a title.
+    // We'll crop the middle third (side view) and ignore the title area.
+    // This keeps the game self-contained without requiring a separate crop file.
+    const sw = img.width;
+    const sh = img.height;
+    if (!sw || !sh) return;
+
+    const sx = Math.floor(sw / 3);
+    const sy = Math.floor(sh * 0.22); // skip title region
+    const sW = Math.floor(sw / 3);
+    const sH = Math.floor(sh * 0.78);
+
+    // Draw scaled to fit our world footprint nicely
+    const drawW = 44;
+    const drawH = 24;
+    const dx = Math.round(x - drawW / 2);
+    const dy = Math.round(y - drawH / 2);
+
+    // shadow
+    ctx2.fillStyle = "rgba(0,0,0,0.22)";
+    ctx2.beginPath();
+    ctx2.ellipse(x, y + 10, 20, 6, 0, 0, Math.PI * 2);
+    ctx2.fill();
+
+    // sprite
+    ctx2.imageSmoothingEnabled = false; // keep it crisp/pixelated
+    ctx2.drawImage(img, sx, sy, sW, sH, dx, dy - 6, drawW, drawH);
+
+    // outline to match our style
+    ctx2.strokeStyle = "rgba(0,0,0,0.28)";
+    ctx2.lineWidth = 2;
+    ctx2.strokeRect(dx + 1, dy - 6 + 1, drawW - 2, drawH - 2);
   }
 
   function drawPlayerSprite(ctx2, p) {
@@ -1579,8 +2357,8 @@ function main() {
     const dt = Math.min(0.032, (now - last) / 1000);
     last = now;
 
-    // Move unless modal open
-    if (!modal.isOpen) {
+    // Move unless modal open (or fishing)
+    if (!modal.isOpen && !fishing.active) {
       const up = keys.has("ArrowUp") || keys.has("w") || keys.has("W");
       const down = keys.has("ArrowDown") || keys.has("s") || keys.has("S");
       const left = keys.has("ArrowLeft") || keys.has("a") || keys.has("A");
@@ -1619,6 +2397,8 @@ function main() {
 
       nearbyHouse = computeNearbyHouse();
       nearbySign = computeNearbySign();
+      nearbyVehicle = computeNearbyVehicle();
+      nearbyWater = computeNearbyWater();
       if (nearbyHouse) {
         const st = houseStatus(nearbyHouse);
         if (nearbyHouse.step === CONFIG.stepsTotal + 1) {
@@ -1636,11 +2416,23 @@ function main() {
           nextStep === CONFIG.stepsTotal + 1
             ? CONFIG.houses.find((h) => h.step === 8)?.name ?? "Finale"
             : CONFIG.houses.find((h) => h.step === nextStep)?.name ?? `House ${nextStep}`;
-        if (nearbySign?.text) $("#tipText").textContent = `Sign: ${nearbySign.text}`;
+        if (player.mountedVehicleId) {
+          $("#tipText").textContent = "Riding — press Enter/A to dismount (when not at a house).";
+        } else if (nearbyVehicle) {
+          $("#tipText").textContent = isVehicleUnlocked(nearbyVehicle)
+            ? `Press Enter/A to ride: ${nearbyVehicle.label}`
+            : `Locked: clear House ${nearbyVehicle.unlockStep} to ride ${nearbyVehicle.label}`;
+        } else if (nearbyWater) {
+          $("#tipText").textContent = "Press Enter/A to fish";
+        } else if (nearbySign?.text) $("#tipText").textContent = `Sign: ${nearbySign.text}`;
         else $("#tipText").textContent = `Next destination: ${nextName}`;
       }
     }
     if (modal.isOpen) {
+      player.isMoving = false;
+      player.animTime = 0;
+    }
+    if (fishing.active) {
       player.isMoving = false;
       player.animTime = 0;
     }
@@ -1664,10 +2456,12 @@ function main() {
 
     if (e.key === "Escape") {
       if (modal.isOpen) modalClose();
+      if (fishing.active) cancelFishing();
       return;
     }
 
     if (modal.isOpen) return;
+    if (fishing.active) return;
 
     if (e.key === "Enter") {
       e.preventDefault();
@@ -1685,6 +2479,13 @@ function main() {
 
   // Modal interactions
   modal.closeBtn.addEventListener("click", modalClose);
+  modal.backBtn?.addEventListener("click", () => {
+    if (!modal.wizard) return;
+    if (modal.wizard.idx <= 0) return;
+    wizardStoreCurrentAnswer();
+    modal.wizard.idx -= 1;
+    renderWizardQuestion();
+  });
   modal.overlay.addEventListener("click", (e) => {
     if (e.target === modal.overlay) modalClose();
   });
@@ -1706,10 +2507,12 @@ function main() {
 
   // Reset
   $("#resetBtn").addEventListener("click", () => {
+    cancelFishing("");
     localStorage.removeItem(STORAGE_KEY);
     const fresh = readState();
     state.unlockedStep = fresh.unlockedStep;
     state.solved = fresh.solved;
+    state.fishCaught = fresh.fishCaught ?? 0;
     writeState(state);
     setProgressUI(state);
     setMessage("Progress reset. Walk to House 1.");
