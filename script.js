@@ -2,6 +2,7 @@
    Walk to house doors, press Enter to open a challenge modal, clear 5 houses to reveal the secret. */
 
 const STORAGE_KEY = "jm-town-trials:v3";
+const LANG_KEY = "jm-town-trials:lang:v1";
 
 /** Customize these if you want different answers/challenges. */
 const CONFIG = {
@@ -63,6 +64,204 @@ const CONFIG = {
   secretEncoded: "b2NlaGNhUCBhdGlzb1IgaHRpdyBkZWdhZ25lIHNpIHNlbGFyb00gcmVpdmFK",
   secretPrefix: "Secret unlocked:",
 };
+
+const I18N = {
+  en: {
+    brandTitle: "Town Trials",
+    brandSubtitle: "Walk → enter houses → solve challenges → unlock the secret",
+    reset: "Reset",
+    controlsTitle: "Controls",
+    controlsMove: "Move",
+    controlsInteract: "Interact",
+    controlsClose: "Close",
+    footerText: "This is a static site (no server). Progress is saved locally on this device.",
+    langTitle: "Choose language",
+    langDesc: "Select English or Español to start.",
+    introTitle: "Welcome to Javi’s Life",
+    introBody:
+      "A game where you explore the journey of life — walk the map, enter houses, answer questions, and reach the finale.",
+    introStart: "Start",
+    modalClose: "Close",
+    modalBack: "Back",
+    modalHint: "Hint",
+    modalSubmit: "Submit",
+    wizardNext: "Next",
+    wizardUnlock: "Unlock",
+    wizardUnlockFinale: "Unlock Finale",
+    tipWalkToDoor: "Walk to a house door and press Enter.",
+    tipNextDestination: (name) => `Next destination: ${name}`,
+    msgNothingHere: "Nothing to interact with here.",
+    msgLockedHouse: (name) => `${name} is locked. Clear the earlier houses first.`,
+    msgEntering: (name) => `Entering ${name}...`,
+    msgEnteringFinale: "Entering Finale...",
+    msgPickToContinue: "Pick an option to continue.",
+    msgTryAgain: "Not quite — try again (or use a hint).",
+    msgCleared: "Cleared! Next house unlocked.",
+    msgFinaleUnlocked: "Finale unlocked! Go to the Finale house.",
+    msgReset: "Progress reset. Walk to House 1.",
+    msgMounted: (label) => `Riding: ${label}. (Press Enter/A to dismount when not at a house.)`,
+    msgDismounted: "Dismounted.",
+    msgVehicleLocked: (n, label) => `Locked: clear House ${n} to ride the ${label}.`,
+    tipRidePrompt: (label) => `Press Enter/A to ride: ${label}`,
+    tipRiding: "Riding — press Enter/A to dismount (when not at a house).",
+    tipFish: "Press Enter/A to fish",
+    fish1: "Fishing... 1",
+    fish2: "Fishing... 2",
+    fish3: "Fishing... 3",
+    fishBoom: (fish) => `Boom! Caught a ${fish}.`,
+    fishCancelled: "Fishing cancelled.",
+    finaleLockedTip: "Finale locked — clear all houses.",
+    pressEnterSeeFinale: "Press Enter to see the Finale.",
+    houseLockedTip: (name) => `${name} locked — clear earlier houses.`,
+    pressEnterEnterHouse: (name) => `Press Enter to enter ${name}.`,
+    signPrefix: "Sign:",
+    debugCollisionOn: "Debug: collision overlay ON (press C to toggle)",
+    debugCollisionOff: "Debug: collision overlay OFF",
+    finalePrompt: "Do you want to know the finale? Type YES.",
+    finaleLocked: "Finale is locked. Clear all houses first.",
+    finaleRevealBtn: "Reveal",
+    finaleOk: "OK",
+    finaleTypeYes: "Type YES to reveal",
+    finaleTypeYesError: "Type YES to reveal the finale.",
+    finaleCaption: "Rosita and Javier are engaged.",
+    pickCorrectAnswers: "Pick the correct answers.",
+    houseLocked: "This house is locked.",
+    alreadyClearedFinaleUnlocked: "You already cleared this house. The finale is unlocked.",
+    threeQuestionsInThisHouse: "Three questions in this house.",
+    houseTitles: {
+      1: "Identity Check",
+      2: "The Move + First Job",
+      3: "First Car + Next Jobs",
+      4: "Career + Wilmington",
+      5: "First Tech Job + Studies",
+      6: "Right Now",
+      7: "The Finale Key",
+    },
+  },
+  es: {
+    brandTitle: "Pruebas del Pueblo",
+    brandSubtitle: "Camina → entra a casas → resuelve retos → desbloquea el secreto",
+    reset: "Reiniciar",
+    controlsTitle: "Controles",
+    controlsMove: "Mover",
+    controlsInteract: "Interactuar",
+    controlsClose: "Cerrar",
+    footerText: "Este sitio es estático (sin servidor). El progreso se guarda localmente en este dispositivo.",
+    langTitle: "Elige idioma",
+    langDesc: "Selecciona English o Español para comenzar.",
+    introTitle: "Bienvenido a la vida de Javi",
+    introBody:
+      "Un juego donde exploras el viaje de la vida — camina por el mapa, entra a casas, contesta preguntas y llega al final.",
+    introStart: "Empezar",
+    modalClose: "Cerrar",
+    modalBack: "Atrás",
+    modalHint: "Pista",
+    modalSubmit: "Enviar",
+    wizardNext: "Siguiente",
+    wizardUnlock: "Desbloquear",
+    wizardUnlockFinale: "Desbloquear Final",
+    tipWalkToDoor: "Camina a la puerta de una casa y presiona Enter.",
+    tipNextDestination: (name) => `Siguiente destino: ${name}`,
+    msgNothingHere: "No hay nada con qué interactuar aquí.",
+    msgLockedHouse: (name) => `${name} está cerrada. Primero completa las casas anteriores.`,
+    msgEntering: (name) => `Entrando a ${name}...`,
+    msgEnteringFinale: "Entrando al Final...",
+    msgPickToContinue: "Elige una opción para continuar.",
+    msgTryAgain: "Casi — intenta de nuevo (o usa una pista).",
+    msgCleared: "¡Completado! La siguiente casa se desbloqueó.",
+    msgFinaleUnlocked: "¡Final desbloqueado! Ve a la casa Final.",
+    msgReset: "Progreso reiniciado. Ve a la Casa 1.",
+    msgMounted: (label) => `Conduciendo: ${label}. (Presiona Enter/A para bajarte si no estás en una casa.)`,
+    msgDismounted: "Te bajaste.",
+    msgVehicleLocked: (n, label) => `Bloqueado: completa la Casa ${n} para usar ${label}.`,
+    tipRidePrompt: (label) => `Presiona Enter/A para usar: ${label}`,
+    tipRiding: "Conduciendo — presiona Enter/A para bajarte.",
+    tipFish: "Presiona Enter/A para pescar",
+    fish1: "Pescando... 1",
+    fish2: "Pescando... 2",
+    fish3: "Pescando... 3",
+    fishBoom: (fish) => `¡Boom! Atrapaste un ${fish}.`,
+    fishCancelled: "Pesca cancelada.",
+    finaleLockedTip: "Final bloqueado — completa todas las casas.",
+    pressEnterSeeFinale: "Presiona Enter para ver el Final.",
+    houseLockedTip: (name) => `${name} bloqueada — completa las casas anteriores.`,
+    pressEnterEnterHouse: (name) => `Presiona Enter para entrar a ${name}.`,
+    signPrefix: "Letrero:",
+    debugCollisionOn: "Debug: colisiones ACTIVADAS (presiona C para alternar)",
+    debugCollisionOff: "Debug: colisiones DESACTIVADAS",
+    finalePrompt: "¿Quieres saber el final? Escribe YES.",
+    finaleLocked: "El final está bloqueado. Primero completa todas las casas.",
+    finaleRevealBtn: "Revelar",
+    finaleOk: "OK",
+    finaleTypeYes: "Escribe YES para revelar",
+    finaleTypeYesError: "Escribe YES para revelar el final.",
+    finaleCaption: "Rosita y Javier están comprometidos.",
+    pickCorrectAnswers: "Elige las respuestas correctas.",
+    houseLocked: "Esta casa está bloqueada.",
+    alreadyClearedFinaleUnlocked: "Ya completaste esta casa. El final ya está desbloqueado.",
+    threeQuestionsInThisHouse: "Tres preguntas en esta casa.",
+    houseTitles: {
+      1: "Identidad",
+      2: "La Mudanza + Primer Trabajo",
+      3: "Primer Carro + Siguientes Trabajos",
+      4: "Carrera + Wilmington",
+      5: "Primer Trabajo Tech + Estudios",
+      6: "Hoy en día",
+      7: "La Llave del Final",
+    },
+  },
+};
+
+let currentLang = "en";
+function t(key, ...args) {
+  const dict = I18N[currentLang] ?? I18N.en;
+  const val = dict[key];
+  if (typeof val === "function") return val(...args);
+  return val ?? key;
+}
+
+function setLang(lang) {
+  currentLang = lang === "es" ? "es" : "en";
+  try {
+    localStorage.setItem(LANG_KEY, currentLang);
+  } catch {
+    // ignore
+  }
+}
+
+function getLang() {
+  try {
+    const v = localStorage.getItem(LANG_KEY);
+    return v === "es" ? "es" : "en";
+  } catch {
+    return "en";
+  }
+}
+
+function applyI18nToDom() {
+  // Header / HUD / footer
+  const setText = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  };
+  setText("brandTitle", t("brandTitle"));
+  setText("brandSubtitle", t("brandSubtitle"));
+  setText("resetBtn", t("reset"));
+  setText("controlsTitle", t("controlsTitle"));
+  setText("controlsMove", t("controlsMove"));
+  setText("controlsInteract", t("controlsInteract"));
+  setText("controlsClose", t("controlsClose"));
+  setText("footerText", t("footerText"));
+  setText("langTitle", t("langTitle"));
+  setText("langDesc", t("langDesc"));
+  setText("introTitle", t("introTitle"));
+  setText("introStartBtn", t("introStart"));
+  const introBody = document.querySelector("#introOverlay .modal-body p");
+  if (introBody) introBody.textContent = t("introBody");
+  setText("modalCloseBtn", t("modalClose"));
+  setText("modalBackBtn", t("modalBack"));
+  setText("modalHintBtn", t("modalHint"));
+}
 
 function $(sel) {
   const el = document.querySelector(sel);
@@ -259,7 +458,24 @@ const modal = {
   currentStep: null,
   wizard: null,
   finaleMode: null,
+  autoCloseTimer: null,
 };
+
+function clearModalAutoClose() {
+  if (modal.autoCloseTimer) {
+    clearTimeout(modal.autoCloseTimer);
+    modal.autoCloseTimer = null;
+  }
+}
+
+function scheduleModalAutoClose(ms) {
+  clearModalAutoClose();
+  modal.autoCloseTimer = setTimeout(() => {
+    modal.autoCloseTimer = null;
+    // Only close if we're still open
+    if (modal.isOpen) modalClose();
+  }, ms);
+}
 
 function wizardInit(cfg) {
   modal.wizard = {
@@ -326,7 +542,8 @@ function renderWizardQuestion() {
   modal.desc.textContent = wz.desc ? `${wz.desc} (${progress})` : progress;
 
   if (modal.submit) {
-    modal.submit.textContent = wz.idx === wz.questions.length - 1 ? (wz.finalLabel ?? "Submit") : "Next";
+    modal.submit.textContent =
+      wz.idx === wz.questions.length - 1 ? (wz.finalLabel ?? t("modalSubmit")) : t("wizardNext");
   }
 }
 
@@ -339,15 +556,14 @@ function modalOpen(step, state) {
   modal.form.innerHTML = "";
   modal.wizard = null;
   modal.finaleMode = null;
+  clearModalAutoClose();
 
   // Finale (House 8): show the secret and nothing else
   if (step === CONFIG.stepsTotal + 1) {
     const unlocked = state.unlockedStep >= CONFIG.stepsTotal + 1;
     modal.title.textContent = CONFIG.houses.find((h) => h.step === 8)?.name ?? "Finale";
-    modal.desc.textContent = unlocked
-      ? "Do you want to know the finale? Type YES."
-      : "Finale is locked. Clear all houses first.";
-    modal.submit.textContent = unlocked ? "Reveal" : "OK";
+    modal.desc.textContent = unlocked ? t("finalePrompt") : t("finaleLocked");
+    modal.submit.textContent = unlocked ? t("finaleRevealBtn") : t("finaleOk");
     modal.hintBtn.hidden = true;
     modal.hint.hidden = true;
     if (modal.backBtn) modal.backBtn.hidden = true;
@@ -355,7 +571,7 @@ function modalOpen(step, state) {
     modal.form.innerHTML = unlocked
       ? `
         <label class="field">
-          <span class="field-label">Type YES to reveal</span>
+          <span class="field-label">${escapeHtml(t("finaleTypeYes"))}</span>
           <input id="finale_yes" class="input" type="text" autocomplete="off" spellcheck="false" placeholder="yes" />
         </label>
       `
@@ -391,8 +607,9 @@ function modalClose() {
   modal.currentStep = null;
   modal.wizard = null;
   modal.finaleMode = null;
+  clearModalAutoClose();
   modal.overlay.hidden = true;
-  setMessage("Walk to a house door and press Enter.");
+  setMessage(t("tipWalkToDoor"));
   $("#gameCanvas").focus?.();
 }
 
@@ -408,11 +625,14 @@ function modalSetResult(kind, text) {
 
 function getChallenge(step, state) {
   const houseName = CONFIG.houses.find((h) => h.step === step)?.name ?? `House ${step}`;
+  const isEs = currentLang === "es";
+  const txt = (en, es) => (isEs ? es : en);
+  const houseTitle = (n) => (I18N[currentLang]?.houseTitles?.[n] ?? I18N.en.houseTitles?.[n] ?? "");
   if (step === 1) {
     const questions = [
       {
         id: "1_name",
-        prompt: "Full name",
+        prompt: txt("Full name", "Nombre completo"),
         options: [
           { value: "A", label: "Francisco Javier Morales Duarte" },
           { value: "B", label: "Javier Morales" },
@@ -423,7 +643,7 @@ function getChallenge(step, state) {
       },
       {
         id: "1_dob",
-        prompt: "Date of birth",
+        prompt: txt("Date of birth", "Fecha de nacimiento"),
         options: [
           { value: "A", label: "December 27, 2001" },
           { value: "B", label: "December 27, 2000" },
@@ -434,11 +654,11 @@ function getChallenge(step, state) {
       },
     ];
     return {
-      title: `${houseName} — Identity Check`,
-      desc: "Pick the correct answers.",
-      hint: "No typing needed—just choose.",
+      title: `${houseName} — ${houseTitle(1)}`,
+      desc: t("pickCorrectAnswers"),
+      hint: txt("No typing needed—just choose.", "No necesitas escribir—solo elige."),
       questions,
-      submitLabel: "Unlock",
+      submitLabel: t("wizardUnlock"),
       render: (root) => renderMcq(root, [questions[0]]),
       validate: () => validateMcq(questions),
     };
@@ -448,7 +668,10 @@ function getChallenge(step, state) {
     const questions = [
       {
         id: "2_age",
-        prompt: "What age did I leave Alabama to go to North Carolina?",
+        prompt: txt(
+          "What age did I leave Alabama to go to North Carolina?",
+          "¿A qué edad dejé Alabama para irme a Carolina del Norte?"
+        ),
         options: [
           { value: "A", label: "14" },
           { value: "B", label: "15" },
@@ -459,22 +682,22 @@ function getChallenge(step, state) {
       },
       {
         id: "2_job",
-        prompt: "What was my first job?",
+        prompt: txt("What was my first job?", "¿Cuál fue mi primer trabajo?"),
         options: [
-          { value: "A", label: "Sears — Tools Specialist" },
-          { value: "B", label: "Walmart — Cashier" },
-          { value: "C", label: "Home Depot — Sales Associate" },
-          { value: "D", label: "Target — Stock Team" },
+          { value: "A", label: txt("Sears — Tools Specialist", "Sears — Especialista en herramientas") },
+          { value: "B", label: txt("Walmart — Cashier", "Walmart — Cajero") },
+          { value: "C", label: txt("Home Depot — Sales Associate", "Home Depot — Asociado de ventas") },
+          { value: "D", label: txt("Target — Stock Team", "Target — Reposición") },
         ],
         correct: "A",
       },
     ];
     return {
-      title: `${houseName} — The Move + First Job`,
-      desc: "Pick the correct answers.",
-      hint: "Two questions, two picks.",
+      title: `${houseName} — ${houseTitle(2)}`,
+      desc: t("pickCorrectAnswers"),
+      hint: txt("Two questions, two picks.", "Dos preguntas, dos respuestas."),
       questions,
-      submitLabel: "Unlock",
+      submitLabel: t("wizardUnlock"),
       render: (root) => renderMcq(root, [questions[0]]),
       validate: () => validateMcq(questions),
     };
@@ -484,7 +707,7 @@ function getChallenge(step, state) {
     const questions = [
       {
         id: "3_car",
-        prompt: "What was my first car?",
+        prompt: txt("What was my first car?", "¿Cuál fue mi primer carro?"),
         options: [
           { value: "A", label: "2010 Dodge Challenger" },
           { value: "B", label: "2010 Dodge Charger" },
@@ -495,25 +718,28 @@ function getChallenge(step, state) {
       },
       {
         id: "3_after",
-        prompt: "What did I do after Sears?",
+        prompt: txt("What did I do after Sears?", "¿Qué hice después de Sears?"),
         options: [
           {
             value: "A",
-            label: "Worked two jobs: grocery store + busser at a French restaurant downtown",
+            label: txt(
+              "Worked two jobs: grocery store + busser at a French restaurant downtown",
+              "Trabajé dos empleos: tienda de abarrotes + busser en un restaurante francés en el centro"
+            ),
           },
-          { value: "B", label: "Worked one job: bartender downtown" },
-          { value: "C", label: "Joined the military" },
-          { value: "D", label: "Started a photography business" },
+          { value: "B", label: txt("Worked one job: bartender downtown", "Trabajé un empleo: bartender en el centro") },
+          { value: "C", label: txt("Joined the military", "Me uní al ejército") },
+          { value: "D", label: txt("Started a photography business", "Empecé un negocio de fotografía") },
         ],
         correct: "A",
       },
     ];
     return {
-      title: `${houseName} — First Car + Next Jobs`,
-      desc: "Pick the correct answers.",
-      hint: "Two questions, two picks.",
+      title: `${houseName} — ${houseTitle(3)}`,
+      desc: t("pickCorrectAnswers"),
+      hint: txt("Two questions, two picks.", "Dos preguntas, dos respuestas."),
       questions,
-      submitLabel: "Unlock",
+      submitLabel: t("wizardUnlock"),
       render: (root) => renderMcq(root, [questions[0]]),
       validate: () => validateMcq(questions),
     };
@@ -523,18 +749,24 @@ function getChallenge(step, state) {
     const questions = [
       {
         id: "4_career",
-        prompt: "What career did I want in high school (in order)?",
+        prompt: txt(
+          "What career did I want in high school (in order)?",
+          "¿Qué carrera quería en la preparatoria (en orden)?"
+        ),
         options: [
-          { value: "A", label: "Photographer → Journalist → Engineer" },
-          { value: "B", label: "Engineer → Journalist → Photographer" },
-          { value: "C", label: "Journalist → Photographer → Engineer" },
-          { value: "D", label: "Photographer → Engineer → Journalist" },
+          { value: "A", label: txt("Photographer → Journalist → Engineer", "Fotógrafo → Periodista → Ingeniero") },
+          { value: "B", label: txt("Engineer → Journalist → Photographer", "Ingeniero → Periodista → Fotógrafo") },
+          { value: "C", label: txt("Journalist → Photographer → Engineer", "Periodista → Fotógrafo → Ingeniero") },
+          { value: "D", label: txt("Photographer → Engineer → Journalist", "Fotógrafo → Ingeniero → Periodista") },
         ],
         correct: "A",
       },
       {
         id: "4_money",
-        prompt: "How much money did I have when I left for Wilmington for university?",
+        prompt: txt(
+          "How much money did I have when I left for Wilmington for university?",
+          "¿Cuánto dinero tenía cuando me fui a Wilmington para la universidad?"
+        ),
         options: [
           { value: "A", label: "$0" },
           { value: "B", label: "$500" },
@@ -545,11 +777,11 @@ function getChallenge(step, state) {
       },
     ];
     return {
-      title: `${houseName} — Career + Wilmington`,
-      desc: "Pick the correct answers.",
-      hint: "Two questions, two picks.",
+      title: `${houseName} — ${houseTitle(4)}`,
+      desc: t("pickCorrectAnswers"),
+      hint: txt("Two questions, two picks.", "Dos preguntas, dos respuestas."),
       questions,
-      submitLabel: "Unlock",
+      submitLabel: t("wizardUnlock"),
       render: (root) => renderMcq(root, [questions[0]]),
       validate: () => validateMcq(questions),
     };
@@ -559,7 +791,10 @@ function getChallenge(step, state) {
     const questions = [
       {
         id: "5_money",
-        prompt: "After my first year in college, how much money did I have?",
+        prompt: txt(
+          "After my first year in college, how much money did I have?",
+          "Después de mi primer año en la universidad, ¿cuánto dinero tenía?"
+        ),
         options: [
           { value: "A", label: "$0" },
           { value: "B", label: "$200" },
@@ -570,7 +805,7 @@ function getChallenge(step, state) {
       },
       {
         id: "5_job",
-        prompt: "Where did I get my first tech job?",
+        prompt: txt("Where did I get my first tech job?", "¿Dónde conseguí mi primer trabajo Tech?"),
         options: [
           { value: "A", label: "Liberty Healthcare" },
           { value: "B", label: "Liberty Mutual" },
@@ -581,35 +816,44 @@ function getChallenge(step, state) {
       },
       {
         id: "5_degree",
-        prompt: "What kind of degree was it?",
+        prompt: txt("What kind of degree was it?", "¿Qué tipo de título era?"),
         options: [
-          { value: "A", label: "Bachelor’s (4 years)" },
-          { value: "B", label: "Associate’s (2 years)" },
-          { value: "C", label: "Master’s (2 years)" },
-          { value: "D", label: "Certificate program" },
+          { value: "A", label: txt("Bachelor’s (4 years)", "Licenciatura (4 años)") },
+          { value: "B", label: txt("Associate’s (2 years)", "Asociado (2 años)") },
+          { value: "C", label: txt("Master’s (2 years)", "Maestría (2 años)") },
+          { value: "D", label: txt("Certificate program", "Programa de certificado") },
         ],
         correct: "A",
       },
       {
         id: "5_study",
-        prompt: "What was I studying?",
+        prompt: txt("What was I studying?", "¿Qué estaba estudiando?"),
         options: [
           {
             value: "A",
-            label: "Computer Science (Software Engineering concentration) + Cybersecurity minor",
+            label: txt(
+              "Computer Science (Software Engineering concentration) + Cybersecurity minor",
+              "Ciencias de la Computación (concentración en Ingeniería de Software) + menor en Ciberseguridad"
+            ),
           },
-          { value: "B", label: "Cybersecurity (Software Engineering concentration) + Computer Science minor" },
-          { value: "C", label: "Computer Engineering + Data Science minor" },
-          { value: "D", label: "Information Systems + Business minor" },
+          {
+            value: "B",
+            label: txt(
+              "Cybersecurity (Software Engineering concentration) + Computer Science minor",
+              "Ciberseguridad (concentración en Ingeniería de Software) + menor en Ciencias de la Computación"
+            ),
+          },
+          { value: "C", label: txt("Computer Engineering + Data Science minor", "Ingeniería de Computación + menor en Ciencia de Datos") },
+          { value: "D", label: txt("Information Systems + Business minor", "Sistemas de Información + menor en Negocios") },
         ],
         correct: "A",
       },
     ];
     return {
-      title: `${houseName} — First Tech Job + Studies`,
-      desc: "Pick the correct answers.",
-      hint: "Four questions in this house.",
-      submitLabel: "Unlock",
+      title: `${houseName} — ${houseTitle(5)}`,
+      desc: t("pickCorrectAnswers"),
+      hint: txt("Four questions in this house.", "Cuatro preguntas en esta casa."),
+      submitLabel: t("wizardUnlock"),
       questions,
       render: (root) => renderMcq(root, [questions[0]]),
       validate: () => validateMcq(questions),
@@ -620,18 +864,18 @@ function getChallenge(step, state) {
     const questions = [
       {
         id: "6_work",
-        prompt: "Where do I work now?",
+        prompt: txt("Where do I work now?", "¿Dónde trabajo ahora?"),
         options: [
-          { value: "A", label: "Software Engineer at MegaCorp Logistics" },
-          { value: "B", label: "Project Manager at MegaCorp Logistics" },
-          { value: "C", label: "Software Engineer at Liberty Healthcare" },
-          { value: "D", label: "Cybersecurity Analyst at Duke Health" },
+          { value: "A", label: txt("Software Engineer at MegaCorp Logistics", "Software Engineer en MegaCorp Logistics") },
+          { value: "B", label: txt("Project Manager at MegaCorp Logistics", "Project Manager en MegaCorp Logistics") },
+          { value: "C", label: txt("Software Engineer at Liberty Healthcare", "Software Engineer en Liberty Healthcare") },
+          { value: "D", label: txt("Cybersecurity Analyst at Duke Health", "Analista de Ciberseguridad en Duke Health") },
         ],
         correct: "A",
       },
       {
         id: "6_car",
-        prompt: "What kind of car do I have now?",
+        prompt: txt("What kind of car do I have now?", "¿Qué carro tengo ahora?"),
         options: [
           { value: "A", label: "Tesla Model 3" },
           { value: "B", label: "Tesla Model Y" },
@@ -642,21 +886,21 @@ function getChallenge(step, state) {
       },
       {
         id: "6_purchase",
-        prompt: "What is my recent big purchase?",
+        prompt: txt("What is my recent big purchase?", "¿Cuál es mi compra grande reciente?"),
         options: [
-          { value: "A", label: "A house" },
-          { value: "B", label: "A motorcycle" },
-          { value: "C", label: "A boat" },
-          { value: "D", label: "A watch" },
+          { value: "A", label: txt("A house", "Una casa") },
+          { value: "B", label: txt("A motorcycle", "Una moto") },
+          { value: "C", label: txt("A boat", "Un bote") },
+          { value: "D", label: txt("A watch", "Un reloj") },
         ],
         correct: "A",
       },
     ];
     return {
-      title: `${houseName} — Right Now`,
-      desc: "Pick the correct answers.",
-      hint: "Three questions in this house.",
-      submitLabel: "Unlock",
+      title: `${houseName} — ${houseTitle(6)}`,
+      desc: t("pickCorrectAnswers"),
+      hint: txt("Three questions in this house.", "Tres preguntas en esta casa."),
+      submitLabel: t("wizardUnlock"),
       questions,
       render: (root) => renderMcq(root, [questions[0]]),
       validate: () => validateMcq(questions),
@@ -668,7 +912,7 @@ function getChallenge(step, state) {
     const questions = [
       {
         id: "7_partner",
-        prompt: "What is the name of my partner?",
+        prompt: txt("What is the name of my partner?", "¿Cuál es el nombre de mi pareja?"),
         options: [
           { value: "A", label: "Rosita Pacheco Vargas" },
           { value: "B", label: "Rosita Vargas Pacheco" },
@@ -679,35 +923,36 @@ function getChallenge(step, state) {
       },
       {
         id: "7_years",
-        prompt: "How long have we been together?",
+        prompt: txt("How long have we been together?", "¿Cuánto tiempo hemos estado juntos?"),
         options: [
-          { value: "A", label: "2 years (Jan 4)" },
-          { value: "B", label: "3 years (Jan 4)" },
-          { value: "C", label: "4 years (Jan 4)" },
-          { value: "D", label: "5 years (Jan 4)" },
+          { value: "A", label: txt("2 years (Jan 4)", "2 años (4 de enero)") },
+          { value: "B", label: txt("3 years (Jan 4)", "3 años (4 de enero)") },
+          { value: "C", label: txt("4 years (Jan 4)", "4 años (4 de enero)") },
+          { value: "D", label: txt("5 years (Jan 4)", "5 años (4 de enero)") },
         ],
         correct: "C",
       },
       {
         id: "7_riddle",
         prompt:
-          "Riddle: I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?",
+          txt(
+            "Riddle: I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?",
+            "Adivinanza: Hablo sin boca y escucho sin oídos. No tengo cuerpo, pero cobro vida con el viento. ¿Qué soy?"
+          ),
         options: [
-          { value: "A", label: "An echo" },
-          { value: "B", label: "A shadow" },
-          { value: "C", label: "A candle" },
-          { value: "D", label: "A cloud" },
+          { value: "A", label: txt("An echo", "Un eco") },
+          { value: "B", label: txt("A shadow", "Una sombra") },
+          { value: "C", label: txt("A candle", "Una vela") },
+          { value: "D", label: txt("A cloud", "Una nube") },
         ],
         correct: "A",
       },
     ];
     return {
-      title: `${houseName} — The Finale Key`,
-      desc: finaleUnlocked
-        ? "You already cleared this house. The finale is unlocked."
-        : "Answer these final questions to unlock the finale.",
-      hint: finaleUnlocked ? "" : "Three questions in this house.",
-      submitLabel: finaleUnlocked ? "OK" : "Unlock Finale",
+      title: `${houseName} — ${houseTitle(7)}`,
+      desc: finaleUnlocked ? t("alreadyClearedFinaleUnlocked") : t("pickCorrectAnswers"),
+      hint: finaleUnlocked ? "" : t("threeQuestionsInThisHouse"),
+      submitLabel: finaleUnlocked ? t("finaleOk") : t("wizardUnlockFinale"),
       questions: finaleUnlocked ? null : questions,
       render: (root) => (finaleUnlocked ? (root.textContent = "") : renderMcq(root, [questions[0]])),
       validate: () => (finaleUnlocked ? true : validateMcq(questions)),
@@ -715,8 +960,8 @@ function getChallenge(step, state) {
   }
 
   return {
-    title: "Unknown",
-    desc: "This house is empty.",
+    title: txt("Unknown", "Desconocido"),
+    desc: txt("This house is empty.", "Esta casa está vacía."),
     hint: "",
     render: (root) => (root.textContent = ""),
     validate: () => false,
@@ -727,7 +972,7 @@ function onModalSubmit(state) {
   const step = modal.currentStep;
   if (!step) return;
   if (step > state.unlockedStep) {
-    modalSetResult("bad", "This house is locked.");
+    modalSetResult("bad", t("houseLocked"));
     return;
   }
 
@@ -740,20 +985,25 @@ function onModalSubmit(state) {
     if (modal.finaleMode === "confirm") {
       const v = normalize(document.getElementById("finale_yes")?.value ?? "");
       if (v !== "yes") {
-        modalSetResult("bad", "Type YES to reveal the finale.");
+        modalSetResult("bad", t("finaleTypeYesError"));
         return;
       }
       modal.finaleMode = "revealed";
-      modal.desc.textContent = "Finale:";
-      modal.submit.textContent = "OK";
+      modal.desc.textContent = currentLang === "es" ? "Final:" : "Finale:";
+      modal.submit.textContent = t("finaleOk");
       modal.form.innerHTML = `
-        <div class="ring-stage" aria-label="Engagement ring animation">
-          <div class="ring" aria-hidden="true">
-            <div class="sparkle"></div>
-            <div class="band"></div>
-            <div class="diamond"></div>
+        <div class="finale-stage" aria-label="Finale announcement">
+          <div class="fireworks" aria-hidden="true">
+            <div class="firework" style="--x: 14%; --y: 18%; --d: 0ms"></div>
+            <div class="firework" style="--x: 84%; --y: 22%; --d: 180ms"></div>
+            <div class="firework" style="--x: 22%; --y: 62%; --d: 360ms"></div>
+            <div class="firework" style="--x: 78%; --y: 68%; --d: 540ms"></div>
+            <div class="firework" style="--x: 50%; --y: 12%; --d: 720ms"></div>
+            <div class="firework" style="--x: 50%; --y: 84%; --d: 900ms"></div>
           </div>
-          <div class="ring-caption">Rosita and Javier are engaged.</div>
+
+          <img class="finale-img" src="./assets/finale.png" alt="${escapeHtml(isEs ? "Foto del final" : "Finale photo")}" />
+          <div class="finale-caption">${escapeHtml(t("finaleCaption"))}</div>
         </div>
       `;
       modalSetResult("ok", "");
@@ -769,7 +1019,7 @@ function onModalSubmit(state) {
   if (modal.wizard) {
     wizardStoreCurrentAnswer();
     if (!wizardHasCurrentAnswer()) {
-      modalSetResult("bad", "Pick an option to continue.");
+      modalSetResult("bad", t("msgPickToContinue"));
       return;
     }
 
@@ -783,14 +1033,14 @@ function onModalSubmit(state) {
     // Last question: validate all answers
     const ok = validateMcq(wz.questions, wz.answers);
     if (!ok) {
-      modalSetResult("bad", "Not quite — try again (or use a hint).");
+      modalSetResult("bad", t("msgTryAgain"));
       return;
     }
   } else {
     const cfg = getChallenge(step, state);
     const ok = cfg.validate();
     if (!ok) {
-      modalSetResult("bad", "Not quite — try again (or use a hint).");
+      modalSetResult("bad", t("msgTryAgain"));
       return;
     }
   }
@@ -804,9 +1054,10 @@ function onModalSubmit(state) {
   modal.wizard = null;
 
   if (step === 7) {
-    modalSetResult("ok", "Finale unlocked! Go to the Finale house.");
+    modalSetResult("ok", t("msgFinaleUnlocked"));
   } else {
-    modalSetResult("ok", "Cleared! Next house unlocked.");
+    modalSetResult("ok", t("msgCleared"));
+    scheduleModalAutoClose(5000);
   }
 }
 
@@ -1049,6 +1300,54 @@ function main() {
   if (!ctx) throw new Error("Canvas 2D context not available");
   canvas.tabIndex = 0;
 
+  // Language modal (shown before intro)
+  let gameStarted = false;
+  const langOverlay = document.getElementById("langOverlay");
+  const langEnBtn = document.getElementById("langEnBtn");
+  const langEsBtn = document.getElementById("langEsBtn");
+
+  // Intro modal (gate gameplay start)
+  const introOverlay = document.getElementById("introOverlay");
+  const introStartBtn = document.getElementById("introStartBtn");
+
+  const showIntro = () => {
+    if (!introOverlay) {
+      gameStarted = true;
+      return;
+    }
+    introOverlay.hidden = false;
+    requestAnimationFrame(() => introStartBtn?.focus?.());
+  };
+
+  currentLang = getLang();
+  applyI18nToDom();
+
+  const hasStoredLang = (() => {
+    try {
+      return Boolean(localStorage.getItem(LANG_KEY));
+    } catch {
+      return false;
+    }
+  })();
+
+  const chooseLang = (lang) => {
+    setLang(lang);
+    applyI18nToDom();
+    if (langOverlay) langOverlay.hidden = true;
+    showIntro();
+  };
+
+  if (langOverlay && !hasStoredLang) {
+    langOverlay.hidden = false;
+    requestAnimationFrame(() => langEnBtn?.focus?.());
+  } else {
+    if (langOverlay) langOverlay.hidden = true;
+    showIntro();
+  }
+
+  langEnBtn?.addEventListener("click", () => chooseLang("en"));
+  langEsBtn?.addEventListener("click", () => chooseLang("es"));
+
   const town = buildTown();
   const camera = { x: 0, y: 0 };
   let debugCollision = false;
@@ -1114,7 +1413,7 @@ function main() {
     fishing.timers = [];
   }
 
-  function cancelFishing(message = "Fishing cancelled.") {
+  function cancelFishing(message = t("fishCancelled")) {
     if (!fishing.active) return;
     fishing.active = false;
     clearFishingTimers();
@@ -1574,22 +1873,23 @@ function main() {
   }
 
   function interact() {
+    if (!gameStarted) return;
     if (fishing.active) return;
     // If mounted, Enter/A should prioritize entering houses; otherwise dismount.
     if (player.mountedVehicleId) {
       if (!nearbyHouse) {
         player.mountedVehicleId = null;
-        setMessage("Dismounted.");
+        setMessage(t("msgDismounted"));
         return;
       }
       // if near a house, continue to house interaction
     } else if (nearbyVehicle) {
       if (!isVehicleUnlocked(nearbyVehicle)) {
-        setMessage(`Locked: clear House ${nearbyVehicle.unlockStep} to ride the ${nearbyVehicle.label}.`);
+        setMessage(t("msgVehicleLocked", nearbyVehicle.unlockStep, nearbyVehicle.label));
         return;
       }
       player.mountedVehicleId = nearbyVehicle.id;
-      setMessage(`Riding: ${nearbyVehicle.label}. (Press Enter/A to dismount when not at a house.)`);
+      setMessage(t("msgMounted", nearbyVehicle.label));
       return;
     }
 
@@ -1598,20 +1898,20 @@ function main() {
         startFishing();
         return;
       }
-      setMessage("Nothing to interact with here.");
+      setMessage(t("msgNothingHere"));
       return;
     }
 
     const status = houseStatus(nearbyHouse);
     if (status === "locked") {
-      setMessage(`${nearbyHouse.name} is locked. Clear the earlier houses first.`);
+      setMessage(t("msgLockedHouse", nearbyHouse.name));
       return;
     }
 
     if (nearbyHouse.step === CONFIG.stepsTotal + 1) {
-      setMessage("Entering Finale...");
+      setMessage(t("msgEnteringFinale"));
     } else {
-      setMessage(`Entering ${nearbyHouse.name}...`);
+      setMessage(t("msgEntering", nearbyHouse.name));
     }
     modalOpen(nearbyHouse.step, state);
   }
@@ -1624,17 +1924,17 @@ function main() {
     const fishTypes = ["Bluegill", "Bass", "Catfish", "Trout", "Carp"];
     const caught = fishTypes[Math.floor(Math.random() * fishTypes.length)];
 
-    showBubble("Fishing... 1", 700);
+    showBubble(t("fish1"), 700);
     fishing.timers.push(
       setTimeout(() => {
         if (!fishing.active) return;
-        showBubble("Fishing... 2", 700);
+        showBubble(t("fish2"), 700);
       }, 550),
     );
     fishing.timers.push(
       setTimeout(() => {
         if (!fishing.active) return;
-        showBubble("Fishing... 3", 700);
+        showBubble(t("fish3"), 700);
       }, 1100),
     );
     fishing.timers.push(
@@ -1643,7 +1943,7 @@ function main() {
         fishing.active = false;
         state.fishCaught = (state.fishCaught ?? 0) + 1;
         writeState(state);
-        showBubble(`Boom! Caught a ${caught}.`, 1600);
+        showBubble(t("fishBoom", caught), 1600);
       }, 1650),
     );
   }
@@ -2358,7 +2658,7 @@ function main() {
     last = now;
 
     // Move unless modal open (or fishing)
-    if (!modal.isOpen && !fishing.active) {
+    if (gameStarted && !modal.isOpen && !fishing.active) {
       const up = keys.has("ArrowUp") || keys.has("w") || keys.has("W");
       const down = keys.has("ArrowDown") || keys.has("s") || keys.has("S");
       const left = keys.has("ArrowLeft") || keys.has("a") || keys.has("A");
@@ -2403,12 +2703,12 @@ function main() {
         const st = houseStatus(nearbyHouse);
         if (nearbyHouse.step === CONFIG.stepsTotal + 1) {
           $("#tipText").textContent =
-            st === "locked" ? "Finale locked — clear all houses." : "Press Enter to see the Finale.";
+            st === "locked" ? t("finaleLockedTip") : t("pressEnterSeeFinale");
         } else {
           $("#tipText").textContent =
             st === "locked"
-              ? `${nearbyHouse.name} locked — clear earlier houses.`
-              : `Press Enter to enter ${nearbyHouse.name}.`;
+              ? t("houseLockedTip", nearbyHouse.name)
+              : t("pressEnterEnterHouse", nearbyHouse.name);
         }
       } else {
         const nextStep = clampInt(state.unlockedStep, 1, CONFIG.stepsTotal + 1);
@@ -2417,15 +2717,15 @@ function main() {
             ? CONFIG.houses.find((h) => h.step === 8)?.name ?? "Finale"
             : CONFIG.houses.find((h) => h.step === nextStep)?.name ?? `House ${nextStep}`;
         if (player.mountedVehicleId) {
-          $("#tipText").textContent = "Riding — press Enter/A to dismount (when not at a house).";
+          $("#tipText").textContent = t("tipRiding");
         } else if (nearbyVehicle) {
           $("#tipText").textContent = isVehicleUnlocked(nearbyVehicle)
-            ? `Press Enter/A to ride: ${nearbyVehicle.label}`
-            : `Locked: clear House ${nearbyVehicle.unlockStep} to ride ${nearbyVehicle.label}`;
+            ? t("tipRidePrompt", nearbyVehicle.label)
+            : t("msgVehicleLocked", nearbyVehicle.unlockStep, nearbyVehicle.label);
         } else if (nearbyWater) {
-          $("#tipText").textContent = "Press Enter/A to fish";
-        } else if (nearbySign?.text) $("#tipText").textContent = `Sign: ${nearbySign.text}`;
-        else $("#tipText").textContent = `Next destination: ${nextName}`;
+          $("#tipText").textContent = t("tipFish");
+        } else if (nearbySign?.text) $("#tipText").textContent = `${t("signPrefix")} ${nearbySign.text}`;
+        else $("#tipText").textContent = t("tipNextDestination", nextName);
       }
     }
     if (modal.isOpen) {
@@ -2446,11 +2746,12 @@ function main() {
   // Input
   window.addEventListener("keydown", (e) => {
     if (isTypingTarget(document.activeElement)) return;
+    if (!gameStarted) return;
 
     // Debug: toggle collision overlay
     if (e.key === "c" || e.key === "C") {
       debugCollision = !debugCollision;
-      setMessage(debugCollision ? "Debug: collision overlay ON (press C to toggle)" : "Debug: collision overlay OFF");
+      setMessage(debugCollision ? t("debugCollisionOn") : t("debugCollisionOff"));
       return;
     }
 
@@ -2515,11 +2816,21 @@ function main() {
     state.fishCaught = fresh.fishCaught ?? 0;
     writeState(state);
     setProgressUI(state);
-    setMessage("Progress reset. Walk to House 1.");
+    setMessage(t("msgReset"));
     player.x = WORLD.spawn.x * WORLD.tile;
     player.y = WORLD.spawn.y * WORLD.tile;
     if (modal.isOpen) modalClose();
   });
+
+  // Start intro
+  if (introStartBtn && introOverlay) {
+    introStartBtn.addEventListener("click", () => {
+      introOverlay.hidden = true;
+      gameStarted = true;
+      setMessage(t("tipWalkToDoor"));
+      canvas.focus();
+    });
+  }
 
   // Touch controls visibility (mobile/responsive)
   if (isTouchDevice()) {
@@ -2657,8 +2968,7 @@ function main() {
   wireHudDpad();
 
   // Initial focus + message
-  setMessage("Walk to House 1 and press Enter.");
-  canvas.focus();
+  setMessage(currentLang === "es" ? "Presiona Empezar para comenzar." : "Press Start to begin.");
   ensurePlayerNotStuck();
   const unreachable = validateReachability();
   if (unreachable.length) {
