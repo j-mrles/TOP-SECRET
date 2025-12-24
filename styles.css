@@ -564,6 +564,49 @@ canvas {
   }
 }
 
+/* In-flow mobile controls panel (under the game) */
+.mobile-controls-panel {
+  padding: 14px;
+}
+
+.mobile-controls-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.mobile-joy-wrap {
+  width: 120px;
+  height: 120px;
+}
+
+.joy-base-inline {
+  width: 120px;
+  height: 120px;
+}
+
+.action-btn-inline {
+  position: static;
+  width: 76px;
+  height: 76px;
+}
+
+.mobile-controls-hint {
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+/* Responsive behavior:
+   - On small touch screens: hide the floating overlay joystick, show the under-game panel.
+   - On larger touch screens: keep the floating overlay.
+*/
+@media (pointer: coarse) and (max-width: 720px) {
+  .touch-controls {
+    display: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .progress-fill {
     transition: none;

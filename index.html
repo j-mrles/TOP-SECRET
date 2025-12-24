@@ -92,6 +92,23 @@
         </div>
       </section>
 
+      <!-- Mobile controls panel (in-flow, under the game) -->
+      <section id="mobileControlsPanel" class="card mobile-controls-panel" hidden aria-label="Mobile controls">
+        <div class="mobile-controls-inner">
+          <div class="mobile-joy-wrap" aria-label="Joystick">
+            <div id="joyBaseInline" class="joy-base joy-base-inline">
+              <div id="joyKnobInline" class="joy-knob" aria-hidden="true"></div>
+            </div>
+          </div>
+
+          <button id="actionBtnInline" class="action-btn action-btn-inline" type="button" aria-label="Interact">
+            A
+          </button>
+        </div>
+
+        <div class="muted mobile-controls-hint">Use the joystick to move. Tap A to interact.</div>
+      </section>
+
       <section id="debugPanel" class="card debug" hidden aria-label="Debug panel">
         <div class="debug-title">Startup error</div>
         <div class="muted debug-subtitle">

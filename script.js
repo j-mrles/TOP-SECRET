@@ -604,6 +604,10 @@ function main() {
   const joyKnob = document.getElementById("joyKnob");
   const actionBtn = document.getElementById("actionBtn");
   const supportsPointer = typeof window !== "undefined" && "PointerEvent" in window;
+  const mobileControlsPanel = document.getElementById("mobileControlsPanel");
+  const joyBaseInline = document.getElementById("joyBaseInline");
+  const joyKnobInline = document.getElementById("joyKnobInline");
+  const actionBtnInline = document.getElementById("actionBtnInline");
 
   function isTouchDevice() {
     return (
@@ -623,6 +627,18 @@ function main() {
     joyVec = { x: 0, y: 0 };
     joyActive = false;
     setJoyKnob(0, 0);
+  }
+
+  function shouldUseInlineControls() {
+    // Under-game joystick for small screens; floating overlay for larger touch screens.
+    return window.matchMedia?.("(pointer: coarse) and (max-width: 720px)").matches ?? false;
+  }
+
+  function updateTouchControlsLayout() {
+    if (!isTouchDevice()) return;
+    const inline = shouldUseInlineControls();
+    if (touchControls) touchControls.hidden = inline; // hide overlay on small screens
+    if (mobileControlsPanel) mobileControlsPanel.hidden = !inline; // show under-game panel on small screens
   }
 
   // HUD D-pad buttons (click/press the arrow keys shown under "Controls")
@@ -1478,18 +1494,21 @@ function main() {
     if (modal.isOpen) modalClose();
   });
 
-  // Touch controls wiring
-  if (touchControls && isTouchDevice()) {
-    touchControls.hidden = false;
+  // Touch controls visibility (mobile/responsive)
+  if (isTouchDevice()) {
+    updateTouchControlsLayout();
+    window.addEventListener("resize", updateTouchControlsLayout);
   }
 
-  if (joyBase && joyKnob) {
+  function wireJoystick(baseEl, knobEl) {
+    if (!baseEl || !knobEl) return;
+
     const radius = 44; // px from center
     let activePointerId = null;
     let activeTouchId = null;
 
     const getCenter = () => {
-      const r = joyBase.getBoundingClientRect();
+      const r = baseEl.getBoundingClientRect();
       return { cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
     };
 
@@ -1501,38 +1520,46 @@ function main() {
       const clamped = Math.min(radius, mag);
       const nx = (dx / mag) * clamped;
       const ny = (dy / mag) * clamped;
-      setJoyKnob(nx, ny);
+      // Move the knob inside THIS joystick
+      knobEl.style.transform = `translate(calc(-50% + ${nx}px), calc(-50% + ${ny}px))`;
+      // Control the shared movement vector
       joyVec = { x: nx / radius, y: ny / radius };
     };
 
+    const reset = () => {
+      activePointerId = null;
+      activeTouchId = null;
+      knobEl.style.transform = "translate(-50%, -50%)";
+      resetJoystick();
+    };
+
     if (supportsPointer) {
-      const onPointerDown = (e) => {
+      baseEl.addEventListener("pointerdown", (e) => {
         if (modal.isOpen) return;
         joyActive = true;
         activePointerId = e.pointerId;
-        joyBase.setPointerCapture?.(e.pointerId);
+        baseEl.setPointerCapture?.(e.pointerId);
         applyJoyFromClient(e.clientX, e.clientY);
-      };
+      });
 
-      const onPointerMove = (e) => {
+      window.addEventListener("pointermove", (e) => {
         if (!joyActive) return;
         if (activePointerId !== null && e.pointerId !== activePointerId) return;
         applyJoyFromClient(e.clientX, e.clientY);
-      };
+      }, { passive: true });
 
-      const onPointerUp = (e) => {
+      window.addEventListener("pointerup", (e) => {
         if (activePointerId !== null && e.pointerId !== activePointerId) return;
-        activePointerId = null;
-        resetJoystick();
-      };
+        reset();
+      }, { passive: true });
 
-      joyBase.addEventListener("pointerdown", onPointerDown);
-      window.addEventListener("pointermove", onPointerMove, { passive: true });
-      window.addEventListener("pointerup", onPointerUp, { passive: true });
-      window.addEventListener("pointercancel", onPointerUp, { passive: true });
+      window.addEventListener("pointercancel", (e) => {
+        if (activePointerId !== null && e.pointerId !== activePointerId) return;
+        reset();
+      }, { passive: true });
     } else {
-      // Touch fallback (older mobile Safari)
-      joyBase.addEventListener(
+      // Touch fallback
+      baseEl.addEventListener(
         "touchstart",
         (e) => {
           if (modal.isOpen) return;
@@ -1546,7 +1573,7 @@ function main() {
         { passive: false },
       );
 
-      joyBase.addEventListener(
+      baseEl.addEventListener(
         "touchmove",
         (e) => {
           if (!joyActive) return;
@@ -1561,18 +1588,27 @@ function main() {
       const endTouch = (e) => {
         const t = Array.from(e.changedTouches).find((tt) => tt.identifier === activeTouchId);
         if (!t) return;
-        activeTouchId = null;
-        resetJoystick();
+        reset();
         e.preventDefault();
       };
 
-      joyBase.addEventListener("touchend", endTouch, { passive: false });
-      joyBase.addEventListener("touchcancel", endTouch, { passive: false });
+      baseEl.addEventListener("touchend", endTouch, { passive: false });
+      baseEl.addEventListener("touchcancel", endTouch, { passive: false });
     }
   }
 
+  // Wire both joysticks (overlay + under-game panel). Only one is visible at a time.
+  wireJoystick(joyBase, joyKnob);
+  wireJoystick(joyBaseInline, joyKnobInline);
+
   if (actionBtn) {
     actionBtn.addEventListener("click", () => {
+      if (modal.isOpen) return;
+      interact();
+    });
+  }
+  if (actionBtnInline) {
+    actionBtnInline.addEventListener("click", () => {
       if (modal.isOpen) return;
       interact();
     });
