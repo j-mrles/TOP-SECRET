@@ -603,6 +603,7 @@ function main() {
   const joyBase = document.getElementById("joyBase");
   const joyKnob = document.getElementById("joyKnob");
   const actionBtn = document.getElementById("actionBtn");
+  const supportsPointer = typeof window !== "undefined" && "PointerEvent" in window;
 
   function isTouchDevice() {
     return (
@@ -630,6 +631,7 @@ function main() {
     if (!btns.length) return;
 
     const activePointers = new Map(); // pointerId -> key
+    const activeTouches = new Set(); // key strings
 
     const press = (key) => keys.add(key);
     const release = (key) => keys.delete(key);
@@ -638,51 +640,86 @@ function main() {
       const key = btn.getAttribute("data-vkey");
       if (!key) return;
 
-      btn.addEventListener("pointerdown", (e) => {
-        if (modal.isOpen) return;
-        e.preventDefault();
-        try {
-          btn.setPointerCapture?.(e.pointerId);
-        } catch {
-          // ignore
-        }
-        activePointers.set(e.pointerId, key);
-        press(key);
-      });
+      if (supportsPointer) {
+        btn.addEventListener("pointerdown", (e) => {
+          if (modal.isOpen) return;
+          e.preventDefault();
+          try {
+            btn.setPointerCapture?.(e.pointerId);
+          } catch {
+            // ignore
+          }
+          activePointers.set(e.pointerId, key);
+          press(key);
+        });
 
-      btn.addEventListener("pointerup", (e) => {
-        const k = activePointers.get(e.pointerId);
-        if (k) release(k);
-        activePointers.delete(e.pointerId);
-      });
+        btn.addEventListener("pointerup", (e) => {
+          const k = activePointers.get(e.pointerId);
+          if (k) release(k);
+          activePointers.delete(e.pointerId);
+        });
 
-      btn.addEventListener("pointercancel", (e) => {
-        const k = activePointers.get(e.pointerId);
-        if (k) release(k);
-        activePointers.delete(e.pointerId);
-      });
+        btn.addEventListener("pointercancel", (e) => {
+          const k = activePointers.get(e.pointerId);
+          if (k) release(k);
+          activePointers.delete(e.pointerId);
+        });
+      } else {
+        // Touch fallback (older mobile Safari)
+        btn.addEventListener(
+          "touchstart",
+          (e) => {
+            if (modal.isOpen) return;
+            e.preventDefault();
+            activeTouches.add(key);
+            press(key);
+          },
+          { passive: false },
+        );
+        btn.addEventListener(
+          "touchend",
+          (e) => {
+            e.preventDefault();
+            activeTouches.delete(key);
+            release(key);
+          },
+          { passive: false },
+        );
+        btn.addEventListener(
+          "touchcancel",
+          (e) => {
+            e.preventDefault();
+            activeTouches.delete(key);
+            release(key);
+          },
+          { passive: false },
+        );
+      }
 
       btn.addEventListener("pointerleave", () => {
         // If a pointer leaves without a clean up, the window handler below will release.
       });
     });
 
-    window.addEventListener("pointerup", (e) => {
-      const k = activePointers.get(e.pointerId);
-      if (k) release(k);
-      activePointers.delete(e.pointerId);
-    });
+    if (supportsPointer) {
+      window.addEventListener("pointerup", (e) => {
+        const k = activePointers.get(e.pointerId);
+        if (k) release(k);
+        activePointers.delete(e.pointerId);
+      });
 
-    window.addEventListener("pointercancel", (e) => {
-      const k = activePointers.get(e.pointerId);
-      if (k) release(k);
-      activePointers.delete(e.pointerId);
-    });
+      window.addEventListener("pointercancel", (e) => {
+        const k = activePointers.get(e.pointerId);
+        if (k) release(k);
+        activePointers.delete(e.pointerId);
+      });
+    }
 
     // Safety: if focus changes, stop movement
     window.addEventListener("blur", () => {
       ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].forEach((k) => keys.delete(k));
       activePointers.clear();
+      activeTouches.clear();
     });
   }
 
@@ -1449,45 +1486,89 @@ function main() {
   if (joyBase && joyKnob) {
     const radius = 44; // px from center
     let activePointerId = null;
+    let activeTouchId = null;
 
     const getCenter = () => {
       const r = joyBase.getBoundingClientRect();
       return { cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
     };
 
-    const onPointerDown = (e) => {
-      if (modal.isOpen) return;
-      joyActive = true;
-      activePointerId = e.pointerId;
-      joyBase.setPointerCapture?.(e.pointerId);
-    };
-
-    const onPointerMove = (e) => {
-      if (!joyActive) return;
-      if (activePointerId !== null && e.pointerId !== activePointerId) return;
+    const applyJoyFromClient = (clientX, clientY) => {
       const { cx, cy } = getCenter();
-      const dx = e.clientX - cx;
-      const dy = e.clientY - cy;
+      const dx = clientX - cx;
+      const dy = clientY - cy;
       const mag = Math.hypot(dx, dy) || 1;
       const clamped = Math.min(radius, mag);
       const nx = (dx / mag) * clamped;
       const ny = (dy / mag) * clamped;
       setJoyKnob(nx, ny);
-
-      // Normalize to [-1..1] with slight deadzone in tick
       joyVec = { x: nx / radius, y: ny / radius };
     };
 
-    const onPointerUp = (e) => {
-      if (activePointerId !== null && e.pointerId !== activePointerId) return;
-      activePointerId = null;
-      resetJoystick();
-    };
+    if (supportsPointer) {
+      const onPointerDown = (e) => {
+        if (modal.isOpen) return;
+        joyActive = true;
+        activePointerId = e.pointerId;
+        joyBase.setPointerCapture?.(e.pointerId);
+        applyJoyFromClient(e.clientX, e.clientY);
+      };
 
-    joyBase.addEventListener("pointerdown", onPointerDown);
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    window.addEventListener("pointerup", onPointerUp, { passive: true });
-    window.addEventListener("pointercancel", onPointerUp, { passive: true });
+      const onPointerMove = (e) => {
+        if (!joyActive) return;
+        if (activePointerId !== null && e.pointerId !== activePointerId) return;
+        applyJoyFromClient(e.clientX, e.clientY);
+      };
+
+      const onPointerUp = (e) => {
+        if (activePointerId !== null && e.pointerId !== activePointerId) return;
+        activePointerId = null;
+        resetJoystick();
+      };
+
+      joyBase.addEventListener("pointerdown", onPointerDown);
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
+      window.addEventListener("pointerup", onPointerUp, { passive: true });
+      window.addEventListener("pointercancel", onPointerUp, { passive: true });
+    } else {
+      // Touch fallback (older mobile Safari)
+      joyBase.addEventListener(
+        "touchstart",
+        (e) => {
+          if (modal.isOpen) return;
+          const t = e.changedTouches[0];
+          if (!t) return;
+          joyActive = true;
+          activeTouchId = t.identifier;
+          applyJoyFromClient(t.clientX, t.clientY);
+          e.preventDefault();
+        },
+        { passive: false },
+      );
+
+      joyBase.addEventListener(
+        "touchmove",
+        (e) => {
+          if (!joyActive) return;
+          const t = Array.from(e.changedTouches).find((tt) => tt.identifier === activeTouchId);
+          if (!t) return;
+          applyJoyFromClient(t.clientX, t.clientY);
+          e.preventDefault();
+        },
+        { passive: false },
+      );
+
+      const endTouch = (e) => {
+        const t = Array.from(e.changedTouches).find((tt) => tt.identifier === activeTouchId);
+        if (!t) return;
+        activeTouchId = null;
+        resetJoystick();
+        e.preventDefault();
+      };
+
+      joyBase.addEventListener("touchend", endTouch, { passive: false });
+      joyBase.addEventListener("touchcancel", endTouch, { passive: false });
+    }
   }
 
   if (actionBtn) {
