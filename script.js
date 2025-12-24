@@ -579,6 +579,8 @@ function main() {
   const town = buildTown();
   const camera = { x: 0, y: 0 };
   let debugCollision = false;
+  let joyVec = { x: 0, y: 0 };
+  let joyActive = false;
 
   const player = {
     x: WORLD.spawn.x * WORLD.tile,
@@ -595,6 +597,32 @@ function main() {
   let last = performance.now();
   let nearbyHouse = null;
   let nearbySign = null;
+
+  // Touch UI (mobile joystick + action button)
+  const touchControls = document.getElementById("touchControls");
+  const joyBase = document.getElementById("joyBase");
+  const joyKnob = document.getElementById("joyKnob");
+  const actionBtn = document.getElementById("actionBtn");
+
+  function isTouchDevice() {
+    return (
+      window.matchMedia?.("(pointer: coarse)").matches ||
+      "ontouchstart" in window ||
+      (navigator.maxTouchPoints ?? 0) > 0
+    );
+  }
+
+  function setJoyKnob(nx, ny) {
+    if (!joyKnob) return;
+    // knob expects translate from center
+    joyKnob.style.transform = `translate(calc(-50% + ${nx}px), calc(-50% + ${ny}px))`;
+  }
+
+  function resetJoystick() {
+    joyVec = { x: 0, y: 0 };
+    joyActive = false;
+    setJoyKnob(0, 0);
+  }
 
   function playerRectAt(x, y) {
     return { x: x - player.w / 2, y: y - player.h / 2, w: player.w, h: player.h };
@@ -1226,9 +1254,18 @@ function main() {
       if (left) dx -= 1;
       if (right) dx += 1;
 
-      const len = Math.hypot(dx, dy) || 1;
-      dx /= len;
-      dy /= len;
+      // Prefer joystick when active or non-trivial
+      const jx = joyVec.x;
+      const jy = joyVec.y;
+      const jMag = Math.hypot(jx, jy);
+      if (jMag > 0.08) {
+        dx = jx;
+        dy = jy;
+      } else {
+        const len = Math.hypot(dx, dy) || 1;
+        dx /= len;
+        dy /= len;
+      }
 
       if (dx !== 0 || dy !== 0) {
         if (Math.abs(dx) > Math.abs(dy)) player.dir = dx < 0 ? "left" : "right";
@@ -1341,6 +1378,62 @@ function main() {
     player.y = WORLD.spawn.y * WORLD.tile;
     if (modal.isOpen) modalClose();
   });
+
+  // Touch controls wiring
+  if (touchControls && isTouchDevice()) {
+    touchControls.hidden = false;
+  }
+
+  if (joyBase && joyKnob) {
+    const radius = 44; // px from center
+    let activePointerId = null;
+
+    const getCenter = () => {
+      const r = joyBase.getBoundingClientRect();
+      return { cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
+    };
+
+    const onPointerDown = (e) => {
+      if (modal.isOpen) return;
+      joyActive = true;
+      activePointerId = e.pointerId;
+      joyBase.setPointerCapture?.(e.pointerId);
+    };
+
+    const onPointerMove = (e) => {
+      if (!joyActive) return;
+      if (activePointerId !== null && e.pointerId !== activePointerId) return;
+      const { cx, cy } = getCenter();
+      const dx = e.clientX - cx;
+      const dy = e.clientY - cy;
+      const mag = Math.hypot(dx, dy) || 1;
+      const clamped = Math.min(radius, mag);
+      const nx = (dx / mag) * clamped;
+      const ny = (dy / mag) * clamped;
+      setJoyKnob(nx, ny);
+
+      // Normalize to [-1..1] with slight deadzone in tick
+      joyVec = { x: nx / radius, y: ny / radius };
+    };
+
+    const onPointerUp = (e) => {
+      if (activePointerId !== null && e.pointerId !== activePointerId) return;
+      activePointerId = null;
+      resetJoystick();
+    };
+
+    joyBase.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerup", onPointerUp, { passive: true });
+    window.addEventListener("pointercancel", onPointerUp, { passive: true });
+  }
+
+  if (actionBtn) {
+    actionBtn.addEventListener("click", () => {
+      if (modal.isOpen) return;
+      interact();
+    });
+  }
 
   // Initial focus + message
   setMessage("Walk to House 1 and press Enter.");
