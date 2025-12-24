@@ -188,6 +188,22 @@ a {
   font-size: 12px;
 }
 
+.kbd-btn {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+}
+
+.kbd-btn:active {
+  transform: translateY(1px);
+}
+
+.kbd-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.22);
+}
+
 .sep {
   margin: 0 10px;
   color: rgba(255, 255, 255, 0.25);

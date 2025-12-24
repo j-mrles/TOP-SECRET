@@ -624,6 +624,68 @@ function main() {
     setJoyKnob(0, 0);
   }
 
+  // HUD D-pad buttons (click/press the arrow keys shown under "Controls")
+  function wireHudDpad() {
+    const btns = Array.from(document.querySelectorAll("[data-vkey]"));
+    if (!btns.length) return;
+
+    const activePointers = new Map(); // pointerId -> key
+
+    const press = (key) => keys.add(key);
+    const release = (key) => keys.delete(key);
+
+    btns.forEach((btn) => {
+      const key = btn.getAttribute("data-vkey");
+      if (!key) return;
+
+      btn.addEventListener("pointerdown", (e) => {
+        if (modal.isOpen) return;
+        e.preventDefault();
+        try {
+          btn.setPointerCapture?.(e.pointerId);
+        } catch {
+          // ignore
+        }
+        activePointers.set(e.pointerId, key);
+        press(key);
+      });
+
+      btn.addEventListener("pointerup", (e) => {
+        const k = activePointers.get(e.pointerId);
+        if (k) release(k);
+        activePointers.delete(e.pointerId);
+      });
+
+      btn.addEventListener("pointercancel", (e) => {
+        const k = activePointers.get(e.pointerId);
+        if (k) release(k);
+        activePointers.delete(e.pointerId);
+      });
+
+      btn.addEventListener("pointerleave", () => {
+        // If a pointer leaves without a clean up, the window handler below will release.
+      });
+    });
+
+    window.addEventListener("pointerup", (e) => {
+      const k = activePointers.get(e.pointerId);
+      if (k) release(k);
+      activePointers.delete(e.pointerId);
+    });
+
+    window.addEventListener("pointercancel", (e) => {
+      const k = activePointers.get(e.pointerId);
+      if (k) release(k);
+      activePointers.delete(e.pointerId);
+    });
+
+    // Safety: if focus changes, stop movement
+    window.addEventListener("blur", () => {
+      ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].forEach((k) => keys.delete(k));
+      activePointers.clear();
+    });
+  }
+
   function playerRectAt(x, y) {
     return { x: x - player.w / 2, y: y - player.h / 2, w: player.w, h: player.h };
   }
@@ -1434,6 +1496,8 @@ function main() {
       interact();
     });
   }
+
+  wireHudDpad();
 
   // Initial focus + message
   setMessage("Walk to House 1 and press Enter.");
