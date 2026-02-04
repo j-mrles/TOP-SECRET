@@ -28,7 +28,6 @@ The build was failing on GitHub Pages with Git errors (exit code 128) because:
   - `projects/javi-town-trials/` - Vanilla HTML/CSS/JS
   - `projects/game-selector/` - Vanilla HTML/CSS/JS
   - `projects/valentine-game/` - Pre-built React app (static files)
-  - `projects/2-4/` - Vanilla HTML/CSS/JS
 
 ### 4. Added Verification
 - Created `verify-deployment.sh` script to check all files exist

@@ -13,7 +13,6 @@ files=(
   "projects/game-selector/index.html"
   "projects/shiba-neighborhood/index.html"
   "projects/javi-town-trials/index.html"
-  "projects/2-4/index.html"
 )
 
 missing=0

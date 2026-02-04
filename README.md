@@ -15,7 +15,6 @@ A Pokémon-like 2D top-down mini game. Walk around town, enter houses, and compl
 ### 🔐 Special Games
 Password-protected collection (password: "snoopy"):
 - 💕 **Valentine Game** - A fun Valentine's Day interactive experience
-- 💍 **2/4** - Proposal game (coming soon)
 
 ## Running Locally
 
@@ -74,7 +73,6 @@ Run the verification script to check everything is ready:
   - `javi-town-trials/` - The original Javier Morales game
   - `game-selector/` - Password-protected game selector (password: "snoopy")
   - `valentine-game/` - Built Valentine game (React/Vite)
-  - `2-4/` - Proposal game placeholder
 
 ## Adding New Projects
 
