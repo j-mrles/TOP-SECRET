@@ -11,6 +11,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  deployments: write
 
 concurrency:
   group: "pages"
@@ -30,15 +31,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: will-you-be-my-valentine/package-lock.json
       
       - name: Build Valentine Game
         run: |
-          cd will-you-be-my-valentine
-          npm ci
-          npm run build
-          cp -r dist/* ../projects/valentine-game/
+          if [ -d "will-you-be-my-valentine" ]; then
+            cd will-you-be-my-valentine
+            if [ -f "package-lock.json" ]; then
+              npm ci || npm install
+            else
+              npm install
+            fi
+            npm run build
+            mkdir -p ../projects/valentine-game
+            cp -r dist/* ../projects/valentine-game/
+          else
+            echo "will-you-be-my-valentine directory not found, skipping build"
+          fi
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
