@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+will-you-be-my-valentine/node_modules/
+
+# Build outputs (we commit the built valentine game to projects/valentine-game/)
+will-you-be-my-valentine/dist/
+
+# OS files
+.DS_Store
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
