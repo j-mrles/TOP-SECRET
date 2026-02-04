@@ -29,6 +29,25 @@ Then visit `http://localhost:8080`.
 
 **Note**: This project is designed to work from the root `index.html` and is optimized for GitHub Pages hosting. All paths are relative to the root directory.
 
+## GitHub Pages Deployment
+
+This project is configured for automatic deployment to GitHub Pages:
+
+1. **Automatic Deployment**: A GitHub Actions workflow automatically builds and deploys the site when you push to the `main` branch.
+
+2. **Manual Setup** (if needed):
+   - Go to repository Settings → Pages
+   - Source: Deploy from a branch
+   - Branch: `main` (or your default branch)
+   - Folder: `/ (root)`
+   - Click Save
+
+3. **Important Files**:
+   - `.nojekyll` - Ensures all files are served (prevents Jekyll processing)
+   - `.github/workflows/deploy.yml` - Automatic build and deployment workflow
+
+The valentine game is automatically built during deployment - no manual build steps needed!
+
 ## Project Structure
 
 - `index.html` - **Main menu** (starts here! Choose a project)
