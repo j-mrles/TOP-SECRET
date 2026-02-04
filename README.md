@@ -1,25 +1,21 @@
-# Shiba Neighborhood Explorer
+# Project Collection
 
-A cute interactive game where you play as a Shiba Inu exploring a neighborhood! Walk around, visit different houses, and play games.
+A collection of interactive games and projects. Start from the main menu to choose which project you'd like to explore!
 
-## Features
+## Projects
 
-- 🐕 Play as an adorable Shiba Inu character
-- 🏠 Explore a neighborhood with multiple houses
-- 🎮 Each house contains a different game
-- 📱 Mobile-friendly with touch controls
-- ⌨️ Keyboard controls (Arrow keys/WASD + Enter)
+### 🐕 Shiba Neighborhood
+An interactive game where you play as a Shiba Inu exploring a neighborhood! Walk around, visit different houses, and play games.
+- **Controls**: Arrow keys/WASD to move, Enter to interact
+- **Mobile**: Touch controls with joystick
 
-## Controls
+### 🏘️ Javi's Town Trials
+A Pokémon-like 2D top-down mini game. Walk around town, enter houses, and complete challenges.
 
-- **Arrow Keys** or **WASD**: Move the Shiba around
-- **Enter** or **Space**: Interact with houses
-- **Mobile**: Use the on-screen joystick and action button
-
-## Houses
-
-- **House 1**: Javi's Town Trials (the original game)
-- **Houses 2-6**: Coming soon! (Will show "Game [number] is ready" message)
+### 🔐 Special Games
+Password-protected collection (password: "snoopy"):
+- 💕 **Valentine Game** - A fun Valentine's Day interactive experience
+- 💍 **2/4** - Proposal game (coming soon)
 
 ## Running Locally
 
@@ -31,29 +27,30 @@ python3 -m http.server 8080
 
 Then visit `http://localhost:8080`.
 
+**Note**: This project is designed to work from the root `index.html` and is optimized for GitHub Pages hosting. All paths are relative to the root directory.
+
 ## Project Structure
 
-- `index.html` - Main game entry point
-- `script.js` - Game logic
-- `styles.css` - Styling
-- `projects/` - Folder containing different game projects
+- `index.html` - **Main menu** (starts here! Choose a project)
+- `projects/` - Folder containing all game projects
+  - `shiba-neighborhood/` - Shiba Neighborhood Explorer game
   - `javi-town-trials/` - The original Javier Morales game
+  - `game-selector/` - Password-protected game selector (password: "snoopy")
+  - `valentine-game/` - Built Valentine game (React/Vite)
+  - `2-4/` - Proposal game placeholder
 
-## Adding New Games
+## Adding New Projects
 
-To add a new game:
+To add a new project:
 
-1. Create a new folder in `projects/` with your game files
-2. Update `script.js` → `houses` array to add a new house entry:
-   ```js
-   {
-     id: 2,
-     x: 15,
-     y: 5,
-     name: "Your Game Name",
-     game: "projects/your-game/index.html",
-     ready: true,
-   }
+1. Create a new folder in `projects/` with your project files
+2. Add a new card to the menu in `index.html`:
+   ```html
+   <a href="projects/your-project/index.html" class="project-card">
+     <span class="project-icon">🎮</span>
+     <div class="project-title">Your Project</div>
+     <div class="project-description">Description here</div>
+   </a>
    ```
 
-Enjoy exploring! 🐕✨
+Enjoy exploring! 🎮✨
