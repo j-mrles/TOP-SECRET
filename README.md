@@ -1,13 +1,29 @@
-## Javier Morales: Town Trials (Static 2D Game)
+# Shiba Neighborhood Explorer
 
-A **Pokémon-like 2D top-down** mini game built with **just HTML/CSS/JS**.
+A cute interactive game where you play as a Shiba Inu exploring a neighborhood! Walk around, visit different houses, and play games.
 
-You walk around a small town, enter **5 houses**, and complete challenges “about Javier Morales” to unlock the finale secret.
+## Features
 
-### Run it
+- 🐕 Play as an adorable Shiba Inu character
+- 🏠 Explore a neighborhood with multiple houses
+- 🎮 Each house contains a different game
+- 📱 Mobile-friendly with touch controls
+- ⌨️ Keyboard controls (Arrow keys/WASD + Enter)
 
-- Open `index.html` in any modern browser.
-- Or serve locally:
+## Controls
+
+- **Arrow Keys** or **WASD**: Move the Shiba around
+- **Enter** or **Space**: Interact with houses
+- **Mobile**: Use the on-screen joystick and action button
+
+## Houses
+
+- **House 1**: Javi's Town Trials (the original game)
+- **Houses 2-6**: Coming soon! (Will show "Game [number] is ready" message)
+
+## Running Locally
+
+Just open `index.html` in your browser, or serve it with:
 
 ```bash
 python3 -m http.server 8080
@@ -15,45 +31,29 @@ python3 -m http.server 8080
 
 Then visit `http://localhost:8080`.
 
-### GitHub Pages notes (if something “doesn’t work” after deploy)
+## Project Structure
 
-- Make sure you deployed the **root** of the repo (or `/docs`) that contains `index.html`.
-- If the page loads but the game doesn’t, open the site and check:
-  - **Red debug panel** on the page (startup errors / reachability warnings)
-  - Browser DevTools → **Console** (JS errors)
-  - DevTools → **Network** for `script.js` / `styles.css` returning **404**
+- `index.html` - Main game entry point
+- `script.js` - Game logic
+- `styles.css` - Styling
+- `projects/` - Folder containing different game projects
+  - `javi-town-trials/` - The original Javier Morales game
 
-### Controls
+## Adding New Games
 
-- **Arrow keys** (or **WASD**): move
-- **Enter**: interact / enter a house (when standing near a door)
-- **Esc**: close the challenge dialog
-- **Reset** button: clears saved progress
+To add a new game:
 
-### Customize challenges + secret
+1. Create a new folder in `projects/` with your game files
+2. Update `script.js` → `houses` array to add a new house entry:
+   ```js
+   {
+     id: 2,
+     x: 15,
+     y: 5,
+     name: "Your Game Name",
+     game: "projects/your-game/index.html",
+     ready: true,
+   }
+   ```
 
-Edit `script.js` → `CONFIG`.
-
-- **Challenge answers**: update `CONFIG.answers`
-- **Final secret**: update `CONFIG.secretEncoded`
-
-#### Change the finale secret
-
-The secret is stored as `base64(reverse(secret))`.
-
-Generate a new value in your browser console:
-
-```js
-const secret = "Javier Morales is engaged with Rosita Pacheco";
-const encoded = btoa(secret.split("").reverse().join(""));
-encoded;
-```
-
-Copy that string into `CONFIG.secretEncoded`.
-
-### Notes
-
-- Progress is stored in `localStorage` under key `jm-town-trials:v2`.
-- This is a game, not security: anyone can still view source.
-
-
+Enjoy exploring! 🐕✨

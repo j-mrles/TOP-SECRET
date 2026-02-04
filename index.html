@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Javier Morales: Town Trials</title>
+    <title>Shiba Neighborhood Explorer</title>
     <meta
       name="description"
-      content="A static 2D town adventure. Walk to houses, complete challenges about Javier Morales, and reach the finale secret."
+      content="Explore a cute neighborhood with an interactive Shiba! Visit houses and play games."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,20 +17,14 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to main content</a>
-
     <header class="site-header">
       <div class="container header-inner">
         <div class="brand">
-          <div class="brand-mark" aria-hidden="true">JM</div>
+          <div class="brand-mark" aria-hidden="true">🐕</div>
           <div class="brand-text">
-            <div class="brand-title" id="brandTitle">Town Trials</div>
-            <div class="brand-subtitle" id="brandSubtitle">Walk → enter houses → solve challenges → unlock the secret</div>
+            <div class="brand-title">Shiba Neighborhood</div>
+            <div class="brand-subtitle">Explore houses and play games!</div>
           </div>
-        </div>
-
-        <div class="header-actions">
-          <button id="resetBtn" class="btn btn-ghost" type="button">Reset</button>
         </div>
       </div>
     </header>
@@ -38,38 +32,23 @@
     <main id="main" class="container main">
       <section class="hud card" aria-label="Game HUD">
         <div class="hud-left">
-          <div class="hud-title" id="controlsTitle">Controls</div>
+          <div class="hud-title">Controls</div>
           <div class="hud-controls">
             <button class="kbd kbd-btn" type="button" data-vkey="ArrowUp" aria-label="Move up">↑</button>
             <button class="kbd kbd-btn" type="button" data-vkey="ArrowLeft" aria-label="Move left">←</button>
             <button class="kbd kbd-btn" type="button" data-vkey="ArrowDown" aria-label="Move down">↓</button>
             <button class="kbd kbd-btn" type="button" data-vkey="ArrowRight" aria-label="Move right">→</button>
-            <span class="muted" id="controlsMove">Move</span>
+            <span class="muted">Move</span>
             <span class="sep">•</span>
             <span class="kbd">Enter</span>
-            <span class="muted" id="controlsInteract">Interact</span>
-            <span class="sep">•</span>
-            <span class="kbd">Esc</span>
-            <span class="muted" id="controlsClose">Close</span>
+            <span class="muted">Enter House</span>
           </div>
         </div>
 
         <div class="hud-right">
-          <div class="progress">
-            <div class="progress-top">
-              <div class="progress-label"><span id="progressText">0/7</span> houses cleared</div>
-              <div class="pill" id="statusPill">Not started</div>
-            </div>
-            <div
-              class="progress-bar"
-              role="progressbar"
-              aria-label="Progress"
-              aria-valuemin="0"
-              aria-valuemax="7"
-              aria-valuenow="0"
-            >
-              <div id="progressFill" class="progress-fill" style="width: 0%"></div>
-            </div>
+          <div class="location-display">
+            <span class="dot"></span>
+            <span id="locationText">Neighborhood</span>
           </div>
         </div>
       </section>
@@ -78,13 +57,12 @@
         <div class="game-top">
           <div class="game-badge">
             <span class="dot"></span>
-            <span id="locationText">Javier Town</span>
+            <span id="tipText">Walk to a house and press Enter to enter!</span>
           </div>
-          <div class="game-tip muted" id="tipText">Walk to a house door and press Enter.</div>
         </div>
 
         <div class="canvas-wrap">
-          <canvas id="gameCanvas" width="768" height="432" aria-label="2D town game"></canvas>
+          <canvas id="gameCanvas" width="800" height="600" aria-label="Shiba neighborhood game"></canvas>
         </div>
 
         <div class="game-bottom">
@@ -92,7 +70,7 @@
         </div>
       </section>
 
-      <!-- Mobile controls panel (in-flow, under the game) -->
+      <!-- Mobile controls panel -->
       <section id="mobileControlsPanel" class="card mobile-controls-panel" hidden aria-label="Mobile controls">
         <div class="mobile-controls-inner">
           <div class="mobile-joy-wrap" aria-label="Joystick">
@@ -108,81 +86,22 @@
 
         <div class="muted mobile-controls-hint">Use the joystick to move. Tap A to interact.</div>
       </section>
-
-      <section id="debugPanel" class="card debug" hidden aria-label="Debug panel">
-        <div class="debug-title">Startup error</div>
-        <div class="muted debug-subtitle">
-          The game hit a JavaScript error while loading. Copy the message below and send it to me.
-        </div>
-        <pre id="debugError" class="debug-pre"></pre>
-      </section>
-
-      <footer class="footer">
-        <p class="muted">
-          <span id="footerText">This is a static site (no server). Progress is saved locally on this device.</span>
-          <span class="mono">script.js</span>.
-        </p>
-      </footer>
     </main>
 
-    <!-- Language modal (shown first) -->
-    <div id="langOverlay" class="modal-overlay" hidden>
-      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="langTitle">
+    <!-- House interaction modal -->
+    <div id="houseModal" class="modal-overlay" hidden>
+      <div class="modal" role="dialog" aria-modal="true">
         <div class="modal-head">
-          <div class="modal-title" id="langTitle">Choose language</div>
-          <div class="pill">Language</div>
-        </div>
-        <div class="modal-body">
-          <p class="muted" id="langDesc">Select English or Español to start.</p>
-          <div class="row">
-            <button id="langEnBtn" class="btn" type="button">English</button>
-            <button id="langEsBtn" class="btn btn-ghost" type="button">Español</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Challenge dialog -->
-    <div id="modalOverlay" class="modal-overlay" hidden>
-      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-        <div class="modal-head">
-          <div class="modal-title" id="modalTitle">Challenge</div>
-          <button id="modalCloseBtn" class="btn btn-ghost btn-sm" type="button" aria-label="Close">
+          <div class="modal-title" id="houseModalTitle">House</div>
+          <button id="houseModalClose" class="btn btn-ghost btn-sm" type="button" aria-label="Close">
             Close
           </button>
         </div>
-
         <div class="modal-body">
-          <p class="muted" id="modalDesc"></p>
-
-          <div id="modalForm"></div>
-
+          <p id="houseModalDesc" class="muted"></p>
           <div class="row">
-            <button id="modalBackBtn" class="btn btn-ghost" type="button" hidden>Back</button>
-            <button id="modalSubmitBtn" class="btn" type="button">Submit</button>
-            <button id="modalHintBtn" class="btn btn-ghost" type="button">Hint</button>
-          </div>
-
-          <div id="modalHint" class="hint" hidden></div>
-          <div id="modalResult" class="result" aria-live="polite"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Intro modal (shown before game starts) -->
-    <div id="introOverlay" class="modal-overlay" hidden>
-      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="introTitle">
-        <div class="modal-head">
-          <div class="modal-title" id="introTitle">Welcome to Javi’s Life</div>
-          <div class="pill">Intro</div>
-        </div>
-        <div class="modal-body">
-          <p class="muted">
-            A game where you explore the journey of life — walk the map, enter houses, answer questions, and reach the
-            finale.
-          </p>
-          <div class="row">
-            <button id="introStartBtn" class="btn" type="button">Start</button>
+            <button id="houseModalEnter" class="btn" type="button">Enter</button>
+            <button id="houseModalCancel" class="btn btn-ghost" type="button">Cancel</button>
           </div>
         </div>
       </div>
@@ -204,5 +123,3 @@
     <script src="./script.js" defer></script>
   </body>
 </html>
-
-
