@@ -1,9 +1,10 @@
 # Dependencies
 node_modules/
-will-you-be-my-valentine/node_modules/
+src/**/node_modules/
 
 # Build outputs (we commit the built valentine game to projects/valentine-game/)
-will-you-be-my-valentine/dist/
+src/**/dist/
+src/**/build/
 
 # OS files
 .DS_Store

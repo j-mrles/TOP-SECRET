@@ -62,17 +62,25 @@ This project is **100% static** and ready for GitHub Pages deployment:
 
 Run the verification script to check everything is ready:
 ```bash
-./verify-deployment.sh
+./scripts/verify-deployment.sh
 ```
 
 ## Project Structure
 
-- `index.html` - **Main menu** (starts here! Choose a project)
-- `projects/` - Folder containing all game projects
-  - `shiba-neighborhood/` - Shiba Neighborhood Explorer game
-  - `javi-town-trials/` - The original Javier Morales game
-  - `game-selector/` - Password-protected game selector (password: "snoopy")
-  - `valentine-game/` - Built Valentine game (React/Vite)
+```
+.
+├── index.html              # Main menu (entry point)
+├── projects/               # Deployed game projects
+│   ├── shiba-neighborhood/ # Shiba Neighborhood Explorer
+│   ├── javi-town-trials/   # Javi's Town Trials game
+│   ├── game-selector/      # Password-protected selector
+│   └── valentine-game/     # Built Valentine game (deployed)
+├── src/                    # Source code
+│   └── valentine-game/     # Valentine game source (React/Vite)
+├── docs/                   # Documentation
+├── scripts/                # Utility scripts
+└── assets/                 # Images and other assets
+```
 
 ## Adding New Projects
 

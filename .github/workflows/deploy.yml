@@ -26,6 +26,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
+      - name: Setup Node.js (for building valentine game)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Build Valentine Game
+        run: |
+          if [ -d "src/valentine-game/will-you-be-my-valentine" ]; then
+            cd src/valentine-game/will-you-be-my-valentine
+            npm ci || npm install
+            npm run build
+            mkdir -p ../../../projects/valentine-game
+            cp -r dist/* ../../../projects/valentine-game/
+          fi
+      
       - name: Setup Pages
         uses: actions/configure-pages@v4
       

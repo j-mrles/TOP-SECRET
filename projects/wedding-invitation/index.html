@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wedding Invitation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Dancing+Script:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Playfair Display", serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        overflow-x: hidden;
+        position: relative;
+      }
+
+      /* Animated background elements */
+      .floating-ring {
+        position: absolute;
+        font-size: 3rem;
+        opacity: 0.1;
+        animation: floatRing 8s ease-in-out infinite;
+        pointer-events: none;
+      }
+
+      @keyframes floatRing {
+        0%, 100% {
+          transform: translate(0, 0) rotate(0deg);
+        }
+        25% {
+          transform: translate(30px, -40px) rotate(90deg);
+        }
+        50% {
+          transform: translate(-20px, -60px) rotate(180deg);
+        }
+        75% {
+          transform: translate(40px, -30px) rotate(270deg);
+        }
+      }
+
+      .floating-heart {
+        position: absolute;
+        font-size: 2rem;
+        opacity: 0.15;
+        animation: floatHeart 6s ease-in-out infinite;
+        pointer-events: none;
+      }
+
+      @keyframes floatHeart {
+        0%, 100% {
+          transform: translate(0, 0) scale(1);
+        }
+        50% {
+          transform: translate(20px, -30px) scale(1.2);
+        }
+      }
+
+      .sparkle {
+        position: absolute;
+        font-size: 1.5rem;
+        opacity: 0.2;
+        animation: sparkle 3s linear infinite;
+        pointer-events: none;
+      }
+
+      @keyframes sparkle {
+        0% {
+          transform: rotate(0deg) scale(1);
+          opacity: 0.2;
+        }
+        50% {
+          transform: rotate(180deg) scale(1.5);
+          opacity: 0.5;
+        }
+        100% {
+          transform: rotate(360deg) scale(1);
+          opacity: 0.2;
+        }
+      }
+
+      /* Envelope wrapper */
+      .envelope-wrapper {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 600px;
+        width: 100%;
+        perspective: 1000px;
+        z-index: 20;
+      }
+
+      /* Envelope */
+      .envelope {
+        position: relative;
+        width: 100%;
+        height: 400px;
+        background: linear-gradient(135deg, #d4af37 0%, #f4e4bc 100%);
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transform-style: preserve-3d;
+        animation: envelopeInitial 0.5s ease-out;
+      }
+
+      @keyframes envelopeInitial {
+        from {
+          opacity: 0;
+          transform: scale(0.8);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      /* Envelope flap */
+      .envelope-flap {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 200px;
+        background: linear-gradient(135deg, #c9a852 0%, #e8d5a3 100%);
+        border-radius: 8px 8px 0 0;
+        transform-origin: top;
+        animation: openFlap 1.5s ease-out 0.5s forwards;
+        z-index: 2;
+        box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      @keyframes openFlap {
+        0% {
+          transform: rotateX(0deg);
+        }
+        100% {
+          transform: rotateX(-180deg);
+        }
+      }
+
+      /* Envelope body */
+      .envelope-body {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, #d4af37 0%, #f4e4bc 100%);
+        border-radius: 8px;
+        z-index: 1;
+      }
+
+      /* Envelope seal */
+      .envelope-seal {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80px;
+        height: 80px;
+        background: radial-gradient(circle, #8b4513 0%, #654321 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: #f4e4bc;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        z-index: 3;
+        animation: sealPulse 0.5s ease-out 0.3s;
+      }
+
+      @keyframes sealPulse {
+        0% {
+          transform: translate(-50%, -50%) scale(0);
+        }
+        50% {
+          transform: translate(-50%, -50%) scale(1.2);
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(1);
+        }
+      }
+
+      /* Invitation card inside envelope */
+      .invitation-container {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        max-width: 600px;
+        width: 100%;
+        padding: 3rem 2rem;
+        position: relative;
+        z-index: 10;
+        overflow: hidden;
+        opacity: 0;
+        transform: translateY(50px) scale(0.9);
+        animation: revealInvitation 1s ease-out 2s forwards;
+        margin: 0 auto;
+      }
+
+      @keyframes revealInvitation {
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      /* Hide envelope after opening */
+      .envelope-wrapper.hide {
+        animation: hideEnvelope 0.5s ease-out 2s forwards;
+      }
+
+      @keyframes hideEnvelope {
+        to {
+          opacity: 0;
+          pointer-events: none;
+          z-index: 0;
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Decorative border */
+      .invitation-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border: 3px solid transparent;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #d4af37, #f4e4bc, #d4af37) border-box;
+        -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: destination-out;
+        mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+        mask-composite: exclude;
+        animation: borderGlow 3s ease-in-out infinite;
+      }
+
+      @keyframes borderGlow {
+        0%, 100% {
+          opacity: 0.6;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      /* Header section */
+      .header {
+        text-align: center;
+        margin-bottom: 2rem;
+        animation: fadeIn 1.2s ease-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .header-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+      }
+
+      .header-title {
+        font-family: "Dancing Script", cursive;
+        font-size: 3rem;
+        color: #8b4513;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        animation: slideInLeft 1s ease-out 0.3s both;
+      }
+
+      @keyframes slideInLeft {
+        from {
+          opacity: 0;
+          transform: translateX(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .header-subtitle {
+        font-size: 1.2rem;
+        color: #666;
+        font-style: italic;
+        animation: slideInRight 1s ease-out 0.5s both;
+      }
+
+      @keyframes slideInRight {
+        from {
+          opacity: 0;
+          transform: translateX(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      /* Divider */
+      .divider {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 2rem 0;
+        gap: 1rem;
+        animation: fadeIn 1.5s ease-out;
+      }
+
+      .divider-line {
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #d4af37, transparent);
+        flex: 1;
+        animation: expandLine 1s ease-out 1s both;
+      }
+
+      @keyframes expandLine {
+        from {
+          width: 0;
+        }
+        to {
+          width: 100%;
+        }
+      }
+
+      .divider-icon {
+        font-size: 1.5rem;
+        color: #d4af37;
+      }
+
+      /* Names section */
+      .names-section {
+        text-align: center;
+        margin: 2rem 0;
+        animation: fadeInUp 1.5s ease-out 0.8s both;
+      }
+
+      .name {
+        font-family: "Dancing Script", cursive;
+        font-size: 2.5rem;
+        color: #8b4513;
+        margin: 0.5rem 0;
+        font-weight: 600;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .and {
+        font-size: 1.5rem;
+        color: #d4af37;
+        margin: 1rem 0;
+        font-weight: 600;
+      }
+
+      /* Date and location */
+      .details-section {
+        text-align: center;
+        margin: 2rem 0;
+        animation: fadeInUp 1.5s ease-out 1.2s both;
+      }
+
+      .detail-item {
+        margin: 1rem 0;
+        font-size: 1.1rem;
+        color: #555;
+      }
+
+      .detail-label {
+        font-weight: 600;
+        color: #8b4513;
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+
+      .detail-value {
+        font-style: italic;
+        color: #666;
+      }
+
+      /* RSVP button */
+      .rsvp-section {
+        text-align: center;
+        margin-top: 2.5rem;
+        animation: fadeInUp 1.5s ease-out 1.5s both;
+      }
+
+      .rsvp-button {
+        background: linear-gradient(135deg, #d4af37 0%, #f4e4bc 100%);
+        color: #8b4513;
+        border: none;
+        padding: 1rem 3rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        font-family: "Playfair Display", serif;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .rsvp-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+        background: linear-gradient(135deg, #f4e4bc 0%, #d4af37 100%);
+      }
+
+      .rsvp-button:active {
+        transform: translateY(-1px);
+      }
+
+      /* Confetti animation */
+      .confetti {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: #d4af37;
+        position: absolute;
+        animation: confettiFall 3s linear infinite;
+        pointer-events: none;
+      }
+
+      @keyframes confettiFall {
+        0% {
+          transform: translateY(-100vh) rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(100vh) rotate(360deg);
+          opacity: 0;
+        }
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .header-title {
+          font-size: 2rem;
+        }
+
+        .name {
+          font-size: 2rem;
+        }
+
+        .invitation-container {
+          padding: 2rem 1.5rem;
+        }
+      }
+
+      /* Back button */
+      .back-button {
+        position: fixed;
+        top: 2rem;
+        left: 2rem;
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid #d4af37;
+        color: #8b4513;
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        z-index: 100;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .back-button:hover {
+        background: #d4af37;
+        color: white;
+        transform: translateY(-2px);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Background decorative elements -->
+    <div class="floating-ring" style="left: 10%; top: 10%; animation-delay: 0s;">💍</div>
+    <div class="floating-ring" style="left: 85%; top: 20%; animation-delay: 1s;">💍</div>
+    <div class="floating-ring" style="left: 20%; top: 80%; animation-delay: 2s;">💍</div>
+    <div class="floating-ring" style="left: 75%; top: 70%; animation-delay: 3s;">💍</div>
+
+    <div class="floating-heart" style="left: 15%; top: 30%; animation-delay: 0.5s;">💕</div>
+    <div class="floating-heart" style="left: 80%; top: 50%; animation-delay: 1.5s;">💖</div>
+    <div class="floating-heart" style="left: 25%; top: 60%; animation-delay: 2.5s;">💗</div>
+    <div class="floating-heart" style="left: 70%; top: 15%; animation-delay: 3.5s;">💝</div>
+
+    <div class="sparkle" style="left: 5%; top: 25%; animation-delay: 0s;">✨</div>
+    <div class="sparkle" style="left: 90%; top: 40%; animation-delay: 1s;">⭐</div>
+    <div class="sparkle" style="left: 30%; top: 75%; animation-delay: 2s;">✨</div>
+    <div class="sparkle" style="left: 65%; top: 10%; animation-delay: 3s;">⭐</div>
+
+    <a href="../index.html" class="back-button">← Back to Menu</a>
+
+    <!-- Envelope opening animation -->
+    <div class="envelope-wrapper" id="envelopeWrapper">
+      <div class="envelope">
+        <div class="envelope-flap"></div>
+        <div class="envelope-body"></div>
+        <div class="envelope-seal">💌</div>
+      </div>
+    </div>
+
+    <div class="invitation-container">
+      <div class="header">
+        <div class="header-icon">💒</div>
+        <h1 class="header-title">You're Invited!</h1>
+        <p class="header-subtitle">To celebrate our special day</p>
+      </div>
+
+      <div class="divider">
+        <div class="divider-line"></div>
+        <span class="divider-icon">💐</span>
+        <div class="divider-line"></div>
+      </div>
+
+      <div class="names-section">
+        <div class="name">Javier</div>
+        <div class="and">&</div>
+        <div class="name">Your Name</div>
+      </div>
+
+      <div class="divider">
+        <div class="divider-line"></div>
+        <span class="divider-icon">🌹</span>
+        <div class="divider-line"></div>
+      </div>
+
+      <div class="details-section">
+        <div class="detail-item">
+          <span class="detail-label">📅 Date</span>
+          <span class="detail-value">Saturday, [Date]</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">🕐 Time</span>
+          <span class="detail-value">[Time]</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">📍 Location</span>
+          <span class="detail-value">[Venue Name]<br />[Address]</span>
+        </div>
+      </div>
+
+      <div class="divider">
+        <div class="divider-line"></div>
+        <span class="divider-icon">💍</span>
+        <div class="divider-line"></div>
+      </div>
+
+      <div class="rsvp-section">
+        <button class="rsvp-button" onclick="handleRSVP()">RSVP</button>
+      </div>
+    </div>
+
+    <script>
+      // Create confetti on button click
+      function createConfetti() {
+        const colors = ["#d4af37", "#f4e4bc", "#8b4513", "#ffd700", "#ffb347"];
+        const confettiCount = 50;
+
+        for (let i = 0; i < confettiCount; i++) {
+          setTimeout(() => {
+            const confetti = document.createElement("div");
+            confetti.className = "confetti";
+            confetti.style.left = Math.random() * 100 + "%";
+            confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.animationDelay = Math.random() * 0.5 + "s";
+            confetti.style.animationDuration = (Math.random() * 2 + 2) + "s";
+            document.body.appendChild(confetti);
+
+            setTimeout(() => {
+              confetti.remove();
+            }, 4000);
+          }, i * 20);
+        }
+      }
+
+      function handleRSVP() {
+        createConfetti();
+        
+        // You can customize this to redirect to an RSVP form or show a modal
+        setTimeout(() => {
+          alert("Thank you for your RSVP! We can't wait to celebrate with you! 💕");
+        }, 500);
+      }
+
+      // Add more floating elements dynamically
+      function createFloatingElement() {
+        const emojis = ["💍", "💐", "🌹", "✨", "💕", "💖"];
+        const element = document.createElement("div");
+        element.className = Math.random() > 0.5 ? "floating-ring" : "floating-heart";
+        element.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        element.style.left = Math.random() * 100 + "%";
+        element.style.top = Math.random() * 100 + "%";
+        element.style.animationDelay = Math.random() * 3 + "s";
+        element.style.animationDuration = (Math.random() * 3 + 5) + "s";
+        document.body.appendChild(element);
+
+        setTimeout(() => {
+          element.remove();
+        }, 10000);
+      }
+
+      // Create floating elements periodically
+      setInterval(createFloatingElement, 2000);
+
+      // Hide envelope after animation completes
+      window.addEventListener('load', () => {
+        const envelopeWrapper = document.getElementById('envelopeWrapper');
+        setTimeout(() => {
+          envelopeWrapper.classList.add('hide');
+        }, 2500);
+      });
+    </script>
+  </body>
+</html>
